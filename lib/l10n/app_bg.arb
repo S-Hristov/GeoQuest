@@ -1,0 +1,345 @@
+{
+  "@@locale": "bg",
+  "appTitle": "GeoQuest",
+  "settings": "Настройки",
+  "language": "Език",
+  "darkMode": "Тъмен режим",
+  "notifications": "Известия",
+  "home": "Начало",
+  "map": "Карта",
+  "leaderboard": "Класация",
+  "profile": "Профил",
+  "signIn": "Вход",
+  "signUp": "Регистрация",
+  "google": "Продължи с Google",
+  "welcomeBack": "Добре дошъл отново",
+  "continueJourney": "Продължи приключението",
+  "createAccount": "Създай акаунт",
+  "startAdventure": "Започни българското приключение",
+  "forgotPassword": "Забравена парола?",
+  "or": "или",
+  "dontHaveAccount": "Нямаш акаунт? ",
+  "alreadyHaveAccount": "Вече имаш акаунт? ",
+  "preferences": "Предпочитания",
+  "permissions": "Разрешения",
+  "account": "Акаунт",
+  "about": "Информация",
+  "selectLanguage": "Избери език",
+  "english": "Английски",
+  "bulgarian": "Български",
+  "locationAccess": "Достъп до локация",
+  "cameraAccess": "Достъп до камера",
+  "notificationsSub": "Включи push известия",
+  "darkModeSub": "Настрой темата",
+  "editProfile": "Редактирай профил",
+  "aboutApp": "За приложението",
+  "exploreMap": "Разгледай картата",
+  "mapView": "Карта",
+  "listView": "Списък",
+  "filters": "Филтри",
+  "applyFilters": "Приложи филтри",
+  "reset": "Нулирай",
+  "difficulty": "Трудност",
+  "category": "Категория",
+  "maxDistance": "Макс. разстояние",
+  "easy": "лесно",
+  "medium": "средно",
+  "hard": "трудно",
+  "skip": "Пропусни",
+  "next": "Напред",
+  "getStarted": "Започни",
+  "joinExplorers": "Присъедини се към хиляди изследователи",
+  "onboardingWelcomeTitle": "Добре дошъл в\nGeoQuest Bulgaria",
+  "onboardingWelcomeBody": "Откривай невероятни места из България\nи изпълнявай вълнуващи предизвикателства,\nза да печелиш награди",
+  "onboardingHowItWorksTitle": "Как работи",
+  "onboardingHowItWorksBody": "Твоето приключение в 4 лесни стъпки",
+  "onboardingStepDiscover": "Открий",
+  "onboardingStepDiscoverBody": "Намери близки предизвикателства и забележителности",
+  "onboardingStepGo": "Отиди",
+  "onboardingStepGoBody": "Навигирай до локацията",
+  "onboardingStepComplete": "Завърши",
+  "onboardingStepCompleteBody": "Изпълни предизвикателството",
+  "onboardingStepRewards": "Спечели награди",
+  "onboardingStepRewardsBody": "Събирай точки и постижения",
+  "onboardingPermissionsTitle": "Нуждаем се от\nтвоето разрешение",
+  "onboardingPermissionsBody": "За да ти дадем най-доброто изживяване",
+  "onboardingLocationAccessBody": "Намирай предизвикателства около теб и следи напредъка си, докато изследваш България",
+  "onboardingCameraAccessBody": "Снимай, за да завършваш предизвикателства и да споделяш приключенията си",
+  "onboardingNotificationsAccessBody": "Получавай напомняния за предизвикателства, прогрес и награди в реално време",
+  "onboardingPrivacyNote": "Поверителността ти е важна за нас. Използваме тези данни само за\nда подобрим твоето GeoQuest изживяване.",
+  "onboardingReadyTitle": "Готов ли си\nда изследваш?",
+  "onboardingReadyBody": "Твоето приключение из България започва\nсега. Откривай скрити съкровища и създавай\nнезабравими спомени!",
+  "authFailed": "Неуспешна автентикация",
+  "authFullNameHint": "Пълно име",
+  "authEmailHint": "Имейл",
+  "authPasswordHint": "Парола",
+  "authPasswordMismatch": "Паролите не съвпадат",
+  "authTerms": "Продължавайки, се съгласяваш с\nУсловията за ползване и Политиката за поверителност на GeoQuest",
+  "welcomeBackShort": "Добре дошъл,",
+  "levelWord": "Ниво",
+  "nextLevel": "Следващо ниво",
+  "totalPoints": "Общо точки",
+  "completed": "Завършени",
+  "badges": "Постижения",
+  "dailyChallenge": "Дневно предизвикателство",
+  "nextAchievement": "Следващо постижение",
+  "nearbyChallenges": "Близки предизвикателства",
+  "viewAll": "Виж всички",
+  "categories": "Категории",
+  "yourProgress": "Твоят напредък",
+  "remaining": "Остават",
+  "completeWord": "Завършени",
+  "keepItGoing": "Продължавай така!",
+  "currentStreak": "Текуща серия",
+  "allRankings": "Всички позиции",
+  "yourCurrentRank": "Текущо място",
+  "keepExploringHigher": "Продължи да изследваш, за да се изкачиш!",
+  "leaderboardSubtitle": "Състезавай се с други изследователи из България",
+  "leaderboardTip": "Завършвай повече предизвикателства, за да печелиш точки и да се изкачваш в класацията. Класирането се обновява в реално време!",
+  "pointsWord": "точки",
+  "settingsAllowLocationServices": "Разреши услуги за местоположение",
+  "settingsAllowCameraAccess": "Разреши достъп до камера",
+  "settingsAllowNotifications": "Разреши push известия",
+  "settingsEditProfileSub": "Преглед и редакция на профила",
+  "settingsSignOut": "Изход",
+  "settingsSignOutSub": "Край на локалната сесия",
+  "settingsBackendSync": "Backend синхронизация",
+  "settingsSyncNow": "Синхронизирай сега",
+  "settingsSyncing": "Синхронизиране…",
+  "settingsNoSyncYet": "Все още няма синхронизация",
+  "settingsLastSync": "Последна синхронизация: {value}",
+  "@settingsLastSync": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "settingsLastError": "Последна грешка: {value}",
+  "@settingsLastError": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "settingsSyncComplete": "Синхронизацията завърши",
+  "settingsSyncFailed": "Синхронизацията се провали",
+  "settingsVersion": "Версия {value}",
+  "@settingsVersion": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengeStateActive": "Активно",
+  "challengeStateCompleted": "Завършено",
+  "awayLabel": "Разстояние",
+  "pointsLabel": "Точки",
+  "durationLabel": "Време",
+  "distanceLabel": "Разстояние",
+  "stateLabel": "Състояние",
+  "startedLabel": "Стартирано",
+  "aboutThisChallenge": "За това предизвикателство",
+  "rewardLabel": "Награда",
+  "rewardFirstStepsPoints": "Постижение First Steps • +{points} т.",
+  "@rewardFirstStepsPoints": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "viewCompletedChallenge": "Виж завършеното предизвикателство",
+  "startChallenge": "Стартирай предизвикателството",
+  "completeChallenge": "Завърши предизвикателството",
+  "navigate": "Навигирай",
+  "checkingLocation": "Проверка на местоположението...",
+  "checkLocation": "Провери местоположението",
+  "challengeCompletedTitle": "Предизвикателството е завършено",
+  "challengeCompletedBody": "Вече приключи това предизвикателство. Детайлите за наградата са налични.",
+  "startFirstTitle": "Първо стартирай",
+  "startFirstBody": "Активирай предизвикателството, за да отключиш навигация и завършване.",
+  "navigateLocationTitle": "Навигирай до мястото",
+  "navigateLocationBody": "Отвори навигацията и завърши предизвикателството, когато пристигнеш.",
+  "locationPermissionRequiredTitle": "Нужно е разрешение за местоположение",
+  "locationPermissionRequiredBody": "Разреши услугите за местоположение, за да потвърдим позицията ти.",
+  "tooFarAwayTitle": "Твърде далеч си",
+  "tooFarAwayBody": "Трябва да си в рамките на 100 м. Текущо разстояние: {value}.",
+  "@tooFarAwayBody": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationReachedTitle": "Локацията е достигната",
+  "locationReachedBody": "Вече можеш да започнеш финалния поток и да изпратиш снимка като доказателство.",
+  "challengeStartedTitle": "Предизвикателството започна!",
+  "challengeStartedBody": "Всичко е готово. Отиди до обекта и завърши предизвикателството, когато пристигнеш.",
+  "challengeStartedTip": "Съвет: първо използвай навигацията. После натисни „Завърши предизвикателството“ в детайлния екран.",
+  "startNavigation": "Старт на навигация",
+  "backToMap": "Назад към картата",
+  "photoAcceptedTitle": "Снимката е приета! 🎉",
+  "photoAcceptedBody": "Страхотна работа! Предизвикателството беше завършено успешно.",
+  "firstStepsBadge": "Постижение First Steps",
+  "pointsEarned": "+{points} спечелени точки",
+  "@pointsEarned": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "updatingRewards": "Обновяване на наградите...",
+  "viewRewardDetails": "Виж детайли за наградата",
+  "uploadingProofTitle": "Качване на доказателство...",
+  "uploadingProofBody": "Моля, изчакай докато потвърдим изпратеното",
+  "editProfileTitle": "Редакция на профила",
+  "tapProfilePhoto": "Докосни профилната снимка, за да я смениш",
+  "personalInformation": "Лична информация",
+  "fullName": "Пълно име",
+  "pleaseEnterName": "Моля, въведи име",
+  "emailLabel": "Имейл",
+  "pleaseEnterEmail": "Моля, въведи имейл",
+  "pleaseEnterValidEmail": "Моля, въведи валиден имейл",
+  "bioLabel": "Био",
+  "saving": "Запазване...",
+  "saveChanges": "Запази промените",
+  "choosePhoto": "Избери снимка",
+  "takePhoto": "Направи снимка",
+  "saveProfileError": "Профилът не можа да се запази. Провери данните си.",
+  "profileLevelExplorer": "Изследовател ниво {value}",
+  "@profileLevelExplorer": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "levelValue": "Ниво {value}",
+  "@levelValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "pointsProgress": "{points} / {next} т.",
+  "@pointsProgress": {
+    "placeholders": {
+      "points": {},
+      "next": {}
+    }
+  },
+  "pointsToLevel": "{points} точки до ниво {level}",
+  "@pointsToLevel": {
+    "placeholders": {
+      "points": {},
+      "level": {}
+    }
+  },
+  "inProgress": "В процес",
+  "recentUnlocks": "Скорошни отключвания",
+  "completedChallenges": "Завършени предизвикателства",
+  "daysCount": "{value} дни",
+  "@daysCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "bestCount": "Най-добро {value}",
+  "@bestCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "dayStreak": "{value}-дневна серия",
+  "@dayStreak": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "bestDays": "Най-добро: {value} дни",
+  "@bestDays": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "dailyChallengeDistanceAway": "⌖ {value} км разстояние",
+  "@dailyChallengeDistanceAway": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "distanceAway": "{value} км разстояние",
+  "@distanceAway": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "pointsPts": "+{value} т.",
+  "@pointsPts": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengesCount": "{value} предизвикателства",
+  "@challengesCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengeCompleteCongrats": "🎉 Поздравления!",
+  "challengeCompleteSuccess": "Предизвикателството е завършено успешно!",
+  "yourRewards": "Твоите награди",
+  "pointsEarnedLabel": "Спечелени точки",
+  "badgeUnlockedForCompletingChallenge": "Отключено постижение!\nза завършено предизвикателство",
+  "totalCompleted": "Общо\nзавършени",
+  "currentLevel": "Текущо ниво",
+  "continueExploring": "🚀 Продължи да изследваш",
+  "reachedNewLevel": "✨ Достигна ново ниво!",
+  "pointsUntilNextLevel": "✨ Продължавай страхотно! Остават само {points} точки до ниво {level}!",
+  "@pointsUntilNextLevel": {
+    "placeholders": {
+      "points": {},
+      "level": {}
+    }
+  },
+  "requestingPermissions": "Искане на разрешения...",
+  "achievementUnlocked": "{subtitle}\nОтключено {date}",
+  "@achievementUnlocked": {
+    "placeholders": {
+      "subtitle": {},
+      "date": {}
+    }
+  },
+  "completedCheck": "Завършено ✓",
+  "leaderboardLevelCompleted": "Ниво {level}  •  {completed} завършени",
+  "@leaderboardLevelCompleted": {
+    "placeholders": {
+      "level": {},
+      "completed": {}
+    }
+  },
+  "achievementFirstSteps": "First Steps",
+  "achievementChallengeSeeker": "Ловец на предизвикателства",
+  "achievementNatureExplorer": "Изследовател на природата",
+  "achievementNatureMaster": "Майстор на природата",
+  "achievementCultureLover": "Любител на културата",
+  "achievementHistoryHunter": "Ловец на история",
+  "achievementAdventureAwaits": "Приключението зове",
+  "achievementStreakStarter": "Старт на серия",
+  "achievementExplorer": "Изследовател",
+  "achievementMountainClimber": "Планински катерач",
+  "achievementCompleteFirstChallenge": "Завърши първото си предизвикателство",
+  "achievementCompleteFiveNature": "Завърши 5 природни предизвикателства",
+  "achievementCompleteTwentyFive": "Завърши 25 предизвикателства",
+  "achievementCompleteAllMountain": "Завърши всички планински предизвикателства",
+  "achievementCompleteTen": "Завърши 10 предизвикателства",
+  "achievementCompleteFiveCultural": "Завърши 5 културни предизвикателства",
+  "categoryCultural": "Културни",
+  "categoryNature": "Природа",
+  "categoryHistorical": "Исторически",
+  "categoryAdventure": "Приключенски",
+  "liveCameraPreview": "Преглед от камера на живо",
+  "cameraFallbackPreview": "Камерата не е налична — резервен преглед",
+  "positionLandmark": "Позиционирай обекта в кадъра и натисни за снимка",
+  "confirm": "Потвърди",
+  "retake": "Заснеми отново",
+  "emptyChallengesTitle": "Няма намерени предизвикателства",
+  "emptyChallengesBody": "Промени филтрите или разгледай друга зона.",
+  "emptyInProgressTitle": "Няма постижения в процес",
+  "emptyInProgressBody": "Започни ново предизвикателство, за да работиш към следващото постижение.",
+  "emptyUnlocksTitle": "Няма скорошни отключвания",
+  "emptyUnlocksBody": "Завършвай предизвикателства, за да отключваш постижения и етапи.",
+  "emptyCompletedChallengesTitle": "Все още няма завършени предизвикателства",
+  "emptyCompletedChallengesBody": "Тук ще се показват приключенията, които си завършил.",
+  "emptyLeaderboardTitle": "Класацията е празна",
+  "emptyLeaderboardBody": "Завърши предизвикателства, за да бъдеш първият изследовател в класацията."
+}
