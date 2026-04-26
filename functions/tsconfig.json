@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "Node16",
+    "target": "es2022",
+    "lib": ["es2022"],
+    "moduleResolution": "node16",
+    "outDir": "lib",
+    "rootDir": ".",
+    "isolatedModules": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"]
+}
