@@ -54,3 +54,7 @@ app.*.map.json
 /docs/design/figma-exports/
 /docs/design/figma-*.png
   
+
+# Firebase config — keep out of version control
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
