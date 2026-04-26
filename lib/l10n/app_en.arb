@@ -1,0 +1,345 @@
+{
+  "@@locale": "en",
+  "appTitle": "GeoQuest",
+  "settings": "Settings",
+  "language": "Language",
+  "darkMode": "Dark Mode",
+  "notifications": "Notifications",
+  "home": "Home",
+  "map": "Map",
+  "leaderboard": "Leaderboard",
+  "profile": "Profile",
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "google": "Continue with Google",
+  "welcomeBack": "Welcome Back",
+  "continueJourney": "Continue your journey",
+  "createAccount": "Create Account",
+  "startAdventure": "Start your Bulgarian adventure",
+  "forgotPassword": "Forgot password?",
+  "or": "or",
+  "dontHaveAccount": "Don’t have an account? ",
+  "alreadyHaveAccount": "Already have an account? ",
+  "preferences": "Preferences",
+  "permissions": "Permissions",
+  "account": "Account",
+  "about": "About",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "bulgarian": "Bulgarian",
+  "locationAccess": "Location Access",
+  "cameraAccess": "Camera Access",
+  "notificationsSub": "Enable push notifications",
+  "darkModeSub": "Adjust display theme",
+  "editProfile": "Edit Profile",
+  "aboutApp": "About App",
+  "exploreMap": "Explore Map",
+  "mapView": "Map View",
+  "listView": "List View",
+  "filters": "Filters",
+  "applyFilters": "Apply Filters",
+  "reset": "Reset",
+  "difficulty": "Difficulty",
+  "category": "Category",
+  "maxDistance": "Max Distance",
+  "easy": "easy",
+  "medium": "medium",
+  "hard": "hard",
+  "skip": "Skip",
+  "next": "Next",
+  "getStarted": "Get Started",
+  "joinExplorers": "Join thousands of explorers",
+  "onboardingWelcomeTitle": "Welcome to\nGeoQuest Bulgaria",
+  "onboardingWelcomeBody": "Explore amazing places across Bulgaria\nand complete exciting challenges to\nearn rewards",
+  "onboardingHowItWorksTitle": "How It Works",
+  "onboardingHowItWorksBody": "Your adventure in 4 simple steps",
+  "onboardingStepDiscover": "Discover",
+  "onboardingStepDiscoverBody": "Find nearby challenges and landmarks",
+  "onboardingStepGo": "Go",
+  "onboardingStepGoBody": "Navigate to the location",
+  "onboardingStepComplete": "Complete",
+  "onboardingStepCompleteBody": "Finish the challenge",
+  "onboardingStepRewards": "Earn Rewards",
+  "onboardingStepRewardsBody": "Collect points and achievements",
+  "onboardingPermissionsTitle": "We Need Your\nPermission",
+  "onboardingPermissionsBody": "To give you the best experience",
+  "onboardingLocationAccessBody": "Find challenges near you and track your progress as you explore Bulgaria",
+  "onboardingCameraAccessBody": "Capture photos to complete challenges and share your adventures",
+  "onboardingNotificationsAccessBody": "Get challenge reminders, progress updates, and reward alerts in real time",
+  "onboardingPrivacyNote": "Your privacy is important to us. We only use this data to\nenhance your GeoQuest experience.",
+  "onboardingReadyTitle": "Ready to\nExplore?",
+  "onboardingReadyBody": "Your adventure across Bulgaria starts\nnow. Discover hidden gems and create\nunforgettable memories!",
+  "authFailed": "Authentication failed",
+  "authFullNameHint": "Full Name",
+  "authEmailHint": "Email",
+  "authPasswordHint": "Password",
+  "authPasswordMismatch": "Passwords do not match",
+  "authTerms": "By continuing, you agree to GeoQuest's\nTerms of Service and Privacy Policy",
+  "welcomeBackShort": "Welcome back,",
+  "levelWord": "Level",
+  "nextLevel": "Next Level",
+  "totalPoints": "Total Points",
+  "completed": "Completed",
+  "badges": "Achievements",
+  "dailyChallenge": "Daily Challenge",
+  "nextAchievement": "Next Achievement",
+  "nearbyChallenges": "Nearby Challenges",
+  "viewAll": "View all",
+  "categories": "Categories",
+  "yourProgress": "Your Progress",
+  "remaining": "Remaining",
+  "completeWord": "Complete",
+  "keepItGoing": "Keep it going!",
+  "currentStreak": "Current Streak",
+  "allRankings": "All Rankings",
+  "yourCurrentRank": "Your Current Rank",
+  "keepExploringHigher": "Keep exploring to climb higher!",
+  "leaderboardSubtitle": "Compete with other explorers across Bulgaria",
+  "leaderboardTip": "Complete more challenges to earn points and climb the leaderboard. Rankings are updated in real-time!",
+  "pointsWord": "points",
+  "settingsAllowLocationServices": "Allow location services",
+  "settingsAllowCameraAccess": "Allow camera access",
+  "settingsAllowNotifications": "Allow push notifications",
+  "settingsEditProfileSub": "View and edit your profile",
+  "settingsSignOut": "Sign Out",
+  "settingsSignOutSub": "End this local session",
+  "settingsBackendSync": "Backend Sync",
+  "settingsSyncNow": "Sync Now",
+  "settingsSyncing": "Syncing…",
+  "settingsNoSyncYet": "No sync yet",
+  "settingsLastSync": "Last sync: {value}",
+  "@settingsLastSync": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "settingsLastError": "Last error: {value}",
+  "@settingsLastError": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "settingsSyncComplete": "Sync complete",
+  "settingsSyncFailed": "Sync failed",
+  "settingsVersion": "Version {value}",
+  "@settingsVersion": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengeStateActive": "Active",
+  "challengeStateCompleted": "Completed",
+  "awayLabel": "Away",
+  "pointsLabel": "Points",
+  "durationLabel": "Duration",
+  "distanceLabel": "Distance",
+  "stateLabel": "State",
+  "startedLabel": "Started",
+  "aboutThisChallenge": "About this Challenge",
+  "rewardLabel": "Reward",
+  "rewardFirstStepsPoints": "First Steps achievement • +{points} pts",
+  "@rewardFirstStepsPoints": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "viewCompletedChallenge": "View Completed Challenge",
+  "startChallenge": "Start Challenge",
+  "completeChallenge": "Complete Challenge",
+  "navigate": "Navigate",
+  "checkingLocation": "Checking location...",
+  "checkLocation": "Check Location",
+  "challengeCompletedTitle": "Challenge completed",
+  "challengeCompletedBody": "You already finished this challenge. Reward details stay available.",
+  "startFirstTitle": "Start first",
+  "startFirstBody": "Activate the challenge to unlock navigation and completion.",
+  "navigateLocationTitle": "Navigate to the location",
+  "navigateLocationBody": "Open navigation, then complete the challenge when you arrive.",
+  "locationPermissionRequiredTitle": "Location permission required",
+  "locationPermissionRequiredBody": "Enable location services to verify your position.",
+  "tooFarAwayTitle": "Too far away",
+  "tooFarAwayBody": "Be within 100m. Current distance: {value}.",
+  "@tooFarAwayBody": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationReachedTitle": "Location reached",
+  "locationReachedBody": "You can now start the completion flow and submit your proof photo.",
+  "challengeStartedTitle": "Challenge Started!",
+  "challengeStartedBody": "You are all set. Head to the landmark and complete it when you arrive.",
+  "challengeStartedTip": "Tip: Use navigation first, then tap Complete Challenge on the detail screen.",
+  "startNavigation": "Start Navigation",
+  "backToMap": "Back to Map",
+  "photoAcceptedTitle": "Photo Accepted! 🎉",
+  "photoAcceptedBody": "Great job! Your challenge has been completed successfully.",
+  "firstStepsBadge": "First Steps Achievement",
+  "pointsEarned": "+{points} Points Earned",
+  "@pointsEarned": {
+    "placeholders": {
+      "points": {}
+    }
+  },
+  "updatingRewards": "Updating rewards...",
+  "viewRewardDetails": "View Reward Details",
+  "uploadingProofTitle": "Uploading proof...",
+  "uploadingProofBody": "Please wait while we verify your submission",
+  "editProfileTitle": "Edit Profile",
+  "tapProfilePhoto": "Tap profile photo to change it",
+  "personalInformation": "Personal Information",
+  "fullName": "Full Name",
+  "pleaseEnterName": "Please enter your name",
+  "emailLabel": "Email",
+  "pleaseEnterEmail": "Please enter your email",
+  "pleaseEnterValidEmail": "Please enter a valid email",
+  "bioLabel": "Bio",
+  "saving": "Saving...",
+  "saveChanges": "Save Changes",
+  "choosePhoto": "Choose Photo",
+  "takePhoto": "Take Photo",
+  "saveProfileError": "Could not save profile. Check your details.",
+  "profileLevelExplorer": "Level {value} Explorer",
+  "@profileLevelExplorer": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "levelValue": "Level {value}",
+  "@levelValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "pointsProgress": "{points} / {next} pts",
+  "@pointsProgress": {
+    "placeholders": {
+      "points": {},
+      "next": {}
+    }
+  },
+  "pointsToLevel": "{points} points to Level {level}",
+  "@pointsToLevel": {
+    "placeholders": {
+      "points": {},
+      "level": {}
+    }
+  },
+  "inProgress": "In Progress",
+  "recentUnlocks": "Recent Unlocks",
+  "completedChallenges": "Completed Challenges",
+  "daysCount": "{value} days",
+  "@daysCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "bestCount": "Best {value}",
+  "@bestCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "dayStreak": "{value}-day streak",
+  "@dayStreak": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "bestDays": "Best: {value} days",
+  "@bestDays": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "dailyChallengeDistanceAway": "⌖ {value} km away",
+  "@dailyChallengeDistanceAway": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "distanceAway": "{value} km away",
+  "@distanceAway": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "pointsPts": "+{value} pts",
+  "@pointsPts": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengesCount": "{value} challenges",
+  "@challengesCount": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "challengeCompleteCongrats": "🎉 Congratulations!",
+  "challengeCompleteSuccess": "Challenge completed successfully!",
+  "yourRewards": "Your Rewards",
+  "pointsEarnedLabel": "Points Earned",
+  "badgeUnlockedForCompletingChallenge": "Achievement Unlocked!\nfor completing challenge",
+  "totalCompleted": "Total\nCompleted",
+  "currentLevel": "Current Level",
+  "continueExploring": "🚀 Continue Exploring",
+  "reachedNewLevel": "✨ You reached a new level!",
+  "pointsUntilNextLevel": "✨ Keep up the amazing work! Only {points} points until Level {level}!",
+  "@pointsUntilNextLevel": {
+    "placeholders": {
+      "points": {},
+      "level": {}
+    }
+  },
+  "requestingPermissions": "Requesting permissions...",
+  "achievementUnlocked": "{subtitle}\nUnlocked {date}",
+  "@achievementUnlocked": {
+    "placeholders": {
+      "subtitle": {},
+      "date": {}
+    }
+  },
+  "completedCheck": "Completed ✓",
+  "leaderboardLevelCompleted": "Level {level}  •  {completed} completed",
+  "@leaderboardLevelCompleted": {
+    "placeholders": {
+      "level": {},
+      "completed": {}
+    }
+  },
+  "achievementFirstSteps": "First Steps",
+  "achievementChallengeSeeker": "Challenge Seeker",
+  "achievementNatureExplorer": "Nature Explorer",
+  "achievementNatureMaster": "Nature Master",
+  "achievementCultureLover": "Culture Lover",
+  "achievementHistoryHunter": "History Hunter",
+  "achievementAdventureAwaits": "Adventure Awaits",
+  "achievementStreakStarter": "Streak Starter",
+  "achievementExplorer": "Explorer",
+  "achievementMountainClimber": "Mountain Climber",
+  "achievementCompleteFirstChallenge": "Complete your first challenge",
+  "achievementCompleteFiveNature": "Complete 5 nature challenges",
+  "achievementCompleteTwentyFive": "Complete 25 challenges",
+  "achievementCompleteAllMountain": "Complete all mountain challenges",
+  "achievementCompleteTen": "Complete 10 challenges",
+  "achievementCompleteFiveCultural": "Complete 5 cultural challenges",
+  "categoryCultural": "Cultural",
+  "categoryNature": "Nature",
+  "categoryHistorical": "Historical",
+  "categoryAdventure": "Adventure",
+  "liveCameraPreview": "Live Camera Preview",
+  "cameraFallbackPreview": "Camera unavailable — preview fallback",
+  "positionLandmark": "Position the landmark in frame and tap to capture",
+  "confirm": "Confirm",
+  "retake": "Retake",
+  "emptyChallengesTitle": "No challenges found",
+  "emptyChallengesBody": "Try changing your filters or explore another area.",
+  "emptyInProgressTitle": "No achievements in progress",
+  "emptyInProgressBody": "Start a new challenge to begin working toward your next achievement.",
+  "emptyUnlocksTitle": "No recent unlocks",
+  "emptyUnlocksBody": "Complete challenges to unlock achievements and milestones.",
+  "emptyCompletedChallengesTitle": "No completed challenges yet",
+  "emptyCompletedChallengesBody": "Your finished adventures will appear here.",
+  "emptyLeaderboardTitle": "Leaderboard is empty",
+  "emptyLeaderboardBody": "Complete challenges to be the first explorer on the board."
+}
