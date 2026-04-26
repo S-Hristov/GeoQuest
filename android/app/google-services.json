@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "580113565319",
+    "project_id": "geoquest-6be2c",
+    "storage_bucket": "geoquest-6be2c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:580113565319:android:a946715e16250363699a22",
+        "android_client_info": {
+          "package_name": "com.geoquest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "580113565319-cgi6mpc70qk3mram7e51cd7u3dvlu5i0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geoquest",
+            "certificate_hash": "109a9a1ff187b2849ca5721360e8b4920fb5a061"
+          }
+        },
+        {
+          "client_id": "580113565319-n3p3in3liofonu2um9fbhepv9h3014r5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJUZOC-uWr8R0RR-hPCmFBaDUq0kWYE1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "580113565319-n3p3in3liofonu2um9fbhepv9h3014r5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
