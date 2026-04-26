@@ -58,3 +58,4 @@ app.*.map.json
 # Firebase config — keep out of version control
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+android/secrets.properties
