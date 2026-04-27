@@ -341,5 +341,19 @@
   "emptyCompletedChallengesTitle": "No completed challenges yet",
   "emptyCompletedChallengesBody": "Your finished adventures will appear here.",
   "emptyLeaderboardTitle": "Leaderboard is empty",
-  "emptyLeaderboardBody": "Complete challenges to be the first explorer on the board."
+  "emptyLeaderboardBody": "Complete challenges to be the first explorer on the board.",
+  "notifications": "Notifications",
+  "noNotificationsYet": "No notifications yet",
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{n}m ago",
+  "@timeMinutesAgo": { "placeholders": { "n": { "type": "int" } } },
+  "timeHoursAgo": "{n}h ago",
+  "@timeHoursAgo": { "placeholders": { "n": { "type": "int" } } },
+  "timeDaysAgo": "{n}d ago",
+  "@timeDaysAgo": { "placeholders": { "n": { "type": "int" } } },
+  "errorCompletingChallenge": "Could not save challenge result. Check your connection.",
+  "errorStartingChallenge": "Could not start challenge. Check your connection.",
+  "errorBackendBoot": "Could not connect to server. Please sign in again.",
+  "errorUpdatingProfile": "Could not save profile changes.",
+  "errorGeneric": "Something went wrong. Check your connection."
 }

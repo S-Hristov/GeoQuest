@@ -1,24 +1,32 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
-
 import 'models/geo_models.dart';
 import 'screens/auth_screens.dart';
 import 'screens/challenge_screens.dart';
 import 'screens/home_screen.dart';
 import 'screens/leaderboard_screen.dart';
 import 'screens/map_screen.dart';
+import 'screens/notifications_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/profile_settings_screens.dart';
 import 'screens/splash/app_splash_screen.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // System shows the notification automatically.
+  // AppState unavailable here — picked up via onMessageOpenedApp on next open.
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const _BootstrapApp());
 }
@@ -48,17 +56,69 @@ class _BootstrapAppState extends State<_BootstrapApp> {
   );
 }
 
-class GeoQuestApp extends StatelessWidget {
+class GeoQuestApp extends StatefulWidget {
   const GeoQuestApp({super.key, required this.appState});
-
   final AppState appState;
+
+  @override
+  State<GeoQuestApp> createState() => _GeoQuestAppState();
+}
+
+class _GeoQuestAppState extends State<GeoQuestApp> {
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.appState.addListener(_onStateChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.appState.removeListener(_onStateChanged);
+    super.dispose();
+  }
+
+  void _onStateChanged() {
+    final error = widget.appState.syncError;
+    if (error == null) return;
+    widget.appState.clearSyncError();
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text(_friendlyError(error))),
+          ],
+        ),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  String _friendlyError(String raw) {
+    final ctx = _messengerKey.currentContext;
+    if (ctx == null) return raw;
+    final l = AppLocalizations.of(ctx);
+    if (raw.contains('completeChallenge')) return l.errorCompletingChallenge;
+    if (raw.contains('startChallenge')) return l.errorStartingChallenge;
+    if (raw.contains('BACKEND BOOT')) return l.errorBackendBoot;
+    if (raw.contains('updateProfile')) return l.errorUpdatingProfile;
+    return l.errorGeneric;
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: appState,
+      value: widget.appState,
       child: Consumer<AppState>(
         builder: (context, state, _) => MaterialApp(
+          scaffoldMessengerKey: _messengerKey,
           title: 'GeoQuest',
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
@@ -74,7 +134,7 @@ class GeoQuestApp extends StatelessWidget {
           ],
           initialRoute: !state.onboardingSeen
               ? '/onboarding'
-              : state.isAuthenticated
+              : state.isAuthenticated && state.user != null
               ? '/home'
               : '/sign-in',
           onGenerateRoute: _route,
@@ -101,6 +161,7 @@ Route<dynamic> _route(RouteSettings settings) {
           navigationChallengeId: uri.queryParameters['nav'],
           initialCategory: uri.queryParameters['category'],
         ),
+        '/notifications' => const NotificationsScreen(),
         '/leaderboard' => const LeaderboardScreen(),
         '/profile' => const ProfileScreen(),
         '/settings' => const SettingsScreen(),
@@ -146,7 +207,15 @@ Widget _dynamicRoute(Uri uri, AppState app) {
     );
   }
   if (segments.length == 2 && segments.first == 'challenge-complete') {
-    return ChallengeCompleteScreen(challenge: app.challengeById(segments.last));
+    final prevLevel = int.tryParse(uri.queryParameters['prevLevel'] ?? '');
+    return ChallengeCompleteScreen(
+      challenge: app.challengeById(segments.last),
+      prevLevel: prevLevel,
+    );
+  }
+  if (segments.length == 2 && segments.first == 'level-up') {
+    final level = int.tryParse(segments.last) ?? 1;
+    return LevelUpScreen(newLevel: level);
   }
   return const SignInScreen();
 }

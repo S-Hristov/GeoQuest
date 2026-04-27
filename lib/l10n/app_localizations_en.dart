@@ -774,4 +774,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emptyLeaderboardBody =>
       'Complete challenges to be the first explorer on the board.';
+
+  @override
+  String get noNotificationsYet => 'No notifications yet';
+
+  @override
+  String get timeJustNow => 'Just now';
+
+  @override
+  String timeMinutesAgo(int n) {
+    return '${n}m ago';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    return '${n}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int n) {
+    return '${n}d ago';
+  }
+
+  @override
+  String get errorCompletingChallenge =>
+      'Could not save challenge result. Check your connection.';
+
+  @override
+  String get errorStartingChallenge =>
+      'Could not start challenge. Check your connection.';
+
+  @override
+  String get errorBackendBoot =>
+      'Could not connect to server. Please sign in again.';
+
+  @override
+  String get errorUpdatingProfile => 'Could not save profile changes.';
+
+  @override
+  String get errorGeneric => 'Something went wrong. Check your connection.';
 }

@@ -1489,6 +1489,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete challenges to be the first explorer on the board.'**
   String get emptyLeaderboardBody;
+
+  /// No description provided for @noNotificationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get noNotificationsYet;
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get timeJustNow;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m ago'**
+  String timeMinutesAgo(int n);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h ago'**
+  String timeHoursAgo(int n);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}d ago'**
+  String timeDaysAgo(int n);
+
+  /// No description provided for @errorCompletingChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save challenge result. Check your connection.'**
+  String get errorCompletingChallenge;
+
+  /// No description provided for @errorStartingChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start challenge. Check your connection.'**
+  String get errorStartingChallenge;
+
+  /// No description provided for @errorBackendBoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to server. Please sign in again.'**
+  String get errorBackendBoot;
+
+  /// No description provided for @errorUpdatingProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save profile changes.'**
+  String get errorUpdatingProfile;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Check your connection.'**
+  String get errorGeneric;
 }
 
 class _AppLocalizationsDelegate

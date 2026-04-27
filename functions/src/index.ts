@@ -76,7 +76,7 @@ export async function dispatchCompletionPushes(input: {
   });
 }
 
-export const getAppState = onCall(async (request) => {
+export const getAppState = onCall({ minInstances: 1 }, async (request) => {
   const uid = requireAuthenticatedUid(request.auth);
   const data = (request.data ?? {}) as {
     name?: string;
@@ -97,7 +97,7 @@ export const getAppState = onCall(async (request) => {
   });
 });
 
-export const syncUserProfile = onCall(async (request) => {
+export const syncUserProfile = onCall({ minInstances: 1 }, async (request) => {
   const uid = requireAuthenticatedUid(request.auth);
   const data = request.data as {
     name?: string;
@@ -272,7 +272,7 @@ export const getLeaderboard = onCall(async (request) => {
   return getLeaderboardHandler(store, limit);
 });
 
-export const getChallenges = onCall(async () => getChallengesHandler(store));
+export const getChallenges = onCall({ minInstances: 1 }, async () => getChallengesHandler(store));
 
 export const pushDailyJobs = onSchedule(
   {

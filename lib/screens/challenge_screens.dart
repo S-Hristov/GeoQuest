@@ -4,3 +4,4 @@ export 'challenge/camera_proof_screen.dart';
 export 'challenge/uploading_proof_screen.dart';
 export 'challenge/photo_accepted_screen.dart';
 export 'challenge/challenge_complete_screen.dart';
+export 'challenge/level_up_screen.dart';

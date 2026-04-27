@@ -58,7 +58,7 @@ class FirebaseBootstrap {
       return null;
     }
 
-    return const FirebaseOptions(
+    return FirebaseOptions(
       apiKey: apiKey,
       appId: appId,
       messagingSenderId: messagingSenderId,
