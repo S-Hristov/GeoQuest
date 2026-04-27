@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -650,8 +651,12 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _refreshPublicData() async {
-    final challenges = await backend.getChallenges();
-    final leaderboard = await backend.getLeaderboard();
+    final results = await Future.wait([
+      backend.getChallenges(),
+      backend.getLeaderboard(),
+    ]);
+    final challenges = results[0];
+    final leaderboard = results[1];
     final data = {'challenges': challenges, 'leaderboard': leaderboard};
     _applyRemoteState(data);
     _savePublicCache(data);
@@ -720,6 +725,17 @@ class AppState extends ChangeNotifier {
     await _saveUserCache();
   }
 
+  Future<void> _runPostAuthSync() async {
+    try {
+      await _syncProfileToBackend();
+      await _syncPushRegistrationIfPossible();
+      notifyListeners();
+    } catch (error) {
+      syncError = 'postAuthSync failed: $error';
+      notifyListeners();
+    }
+  }
+
   UserProfile _userFromIdentity(AuthIdentity identity) {
     final trimmedName = identity.name.trim();
     final initials = trimmedName
@@ -753,9 +769,8 @@ class AppState extends ChangeNotifier {
       user = _userFromIdentity(identity);
       await _saveUserCache();
       await setAuthenticated(true);
-      await _syncProfileToBackend();
-      await _syncPushRegistrationIfPossible();
       notifyListeners();
+      unawaited(_runPostAuthSync());
       return true;
     } catch (_) {
       return false;
@@ -771,9 +786,8 @@ class AppState extends ChangeNotifier {
       user = _userFromIdentity(identity);
       await _saveUserCache();
       await setAuthenticated(true);
-      await _syncProfileToBackend();
-      await _syncPushRegistrationIfPossible();
       notifyListeners();
+      unawaited(_runPostAuthSync());
       return true;
     } catch (_) {
       return false;
@@ -798,9 +812,8 @@ class AppState extends ChangeNotifier {
       user = _userFromIdentity(identity);
       await _saveUserCache();
       await setAuthenticated(true);
-      await _syncProfileToBackend();
-      await _syncPushRegistrationIfPossible();
       notifyListeners();
+      unawaited(_runPostAuthSync());
       return true;
     } catch (_) {
       return false;
