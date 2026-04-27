@@ -1,10 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geoquest/data/mock_geoquest_data.dart';
 import 'package:geoquest/data/mock_geoquest_data.dart' as seed;
 import 'package:geoquest/db/app_database.dart';
-import 'package:geoquest/repositories/geo_repository.dart';
 import 'package:geoquest/l10n/app_localizations.dart';
 import 'package:geoquest/main.dart';
 import 'package:geoquest/models/geo_models.dart';
@@ -590,43 +591,76 @@ void main() {
     expect(state.currentUser.completed, completedAfterFirst);
   });
 
-  test('same day completion keeps streak same in repository', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
+  test('same day completion keeps streak same', () async {
+    final state = AppState.test();
     final today = DateTime.now();
-    await repo.debugSetStreaks(currentStreak: 3, bestStreak: 7);
-    await repo.debugSetLastCompletedDate(today);
+    state.user = UserProfile(
+      name: state.currentUser.name,
+      initials: state.currentUser.initials,
+      level: state.currentUser.level,
+      points: state.currentUser.points,
+      nextLevelPoints: state.currentUser.nextLevelPoints,
+      completed: state.currentUser.completed,
+      badges: state.currentUser.badges,
+      bestStreak: 7,
+      currentStreak: 3,
+      email: state.currentUser.email,
+      avatarPath: state.currentUser.avatarPath,
+      lastCompletedDate: today,
+    );
 
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final user = await repo.currentUser();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final user = state.currentUser;
 
     expect(user.currentStreak, 3);
     expect(user.bestStreak, 7);
   });
 
-  test('next day completion increments streak in repository', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
+  test('next day completion increments streak', () async {
+    final state = AppState.test();
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    await repo.debugSetStreaks(currentStreak: 3, bestStreak: 7);
-    await repo.debugSetLastCompletedDate(yesterday);
+    state.user = UserProfile(
+      name: state.currentUser.name,
+      initials: state.currentUser.initials,
+      level: state.currentUser.level,
+      points: state.currentUser.points,
+      nextLevelPoints: state.currentUser.nextLevelPoints,
+      completed: state.currentUser.completed,
+      badges: state.currentUser.badges,
+      bestStreak: 7,
+      currentStreak: 3,
+      email: state.currentUser.email,
+      avatarPath: state.currentUser.avatarPath,
+      lastCompletedDate: yesterday,
+    );
 
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final user = await repo.currentUser();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final user = state.currentUser;
 
     expect(user.currentStreak, 4);
     expect(user.bestStreak, 7);
   });
 
-  test('missed day resets streak in repository', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
+  test('missed day resets streak', () async {
+    final state = AppState.test();
     final oldDate = DateTime.now().subtract(const Duration(days: 3));
-    await repo.debugSetStreaks(currentStreak: 5, bestStreak: 7);
-    await repo.debugSetLastCompletedDate(oldDate);
+    state.user = UserProfile(
+      name: state.currentUser.name,
+      initials: state.currentUser.initials,
+      level: state.currentUser.level,
+      points: state.currentUser.points,
+      nextLevelPoints: state.currentUser.nextLevelPoints,
+      completed: state.currentUser.completed,
+      badges: state.currentUser.badges,
+      bestStreak: 7,
+      currentStreak: 5,
+      email: state.currentUser.email,
+      avatarPath: state.currentUser.avatarPath,
+      lastCompletedDate: oldDate,
+    );
 
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final user = await repo.currentUser();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final user = state.currentUser;
 
     expect(user.currentStreak, 1);
     expect(user.bestStreak, 7);
@@ -687,26 +721,33 @@ void main() {
     expect(find.text('Best 9'), findsOneWidget);
   });
 
-  test('repository unlocks first challenge achievement once', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
-
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final unlocked = await repo.unlockedAchievements();
+  test('completion unlocks first challenge achievement once', () async {
+    final state = AppState.test();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final unlocked = state.unlockedAchievements;
 
     expect(unlocked.where((a) => a.title == 'First Steps').length, 1);
   });
 
-  test('repository unlocks cultural and streak achievements', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
-    await repo.debugSetStreaks(currentStreak: 2, bestStreak: 2);
-    await repo.debugSetLastCompletedDate(
-      DateTime.now().subtract(const Duration(days: 1)),
+  test('completion unlocks cultural and streak achievements', () async {
+    final state = AppState.test();
+    state.user = UserProfile(
+      name: state.currentUser.name,
+      initials: state.currentUser.initials,
+      level: state.currentUser.level,
+      points: state.currentUser.points,
+      nextLevelPoints: state.currentUser.nextLevelPoints,
+      completed: state.currentUser.completed,
+      badges: state.currentUser.badges,
+      bestStreak: 2,
+      currentStreak: 2,
+      email: state.currentUser.email,
+      avatarPath: state.currentUser.avatarPath,
+      lastCompletedDate: DateTime.now().subtract(const Duration(days: 1)),
     );
 
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final unlocked = await repo.unlockedAchievements();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final unlocked = state.unlockedAchievements;
     final titles = unlocked.map((a) => a.title).toSet();
 
     expect(titles.contains('Culture Lover'), isTrue);
@@ -714,14 +755,12 @@ void main() {
   });
 
   test(
-    'repository duplicate completion does not duplicate achievement unlocks',
+    'duplicate completion does not duplicate achievement unlocks',
     () async {
-      await AppDatabase.instance.resetForTest();
-      final repo = GeoRepository(AppDatabase.instance);
-
-      await repo.completeChallengeAndAward(challenges.first.id, null);
-      await repo.completeChallengeAndAward(challenges.first.id, null);
-      final unlocked = await repo.unlockedAchievements();
+      final state = AppState.test();
+      await state.completeChallengeAndAward(challengeId: challenges.first.id);
+      await state.completeChallengeAndAward(challengeId: challenges.first.id);
+      final unlocked = state.unlockedAchievements;
 
       expect(unlocked.where((a) => a.title == 'First Steps').length, 1);
     },
@@ -802,30 +841,49 @@ void main() {
     await tester.pump();
     expect(find.textContaining('Camera'), findsWidgets);
   });
-  test('repository leaderboard reranks local user after points gain', () async {
-    await AppDatabase.instance.resetForTest();
-    final repo = GeoRepository(AppDatabase.instance);
-    final database = await AppDatabase.instance.database;
-
-    await database.update(
-      'users',
-      {'points': 3800, 'level': 13, 'completed': 30},
-      where: 'id = ?',
-      whereArgs: ['local-user'],
+  test('leaderboard reranks local user after points gain', () async {
+    final state = AppState.test();
+    state.user = UserProfile(
+      name: 'Alex Petrov',
+      initials: 'AP',
+      level: 13,
+      points: 3800,
+      nextLevelPoints: 3500,
+      completed: 30,
+      badges: state.currentUser.badges,
+      bestStreak: state.currentUser.bestStreak,
+      currentStreak: state.currentUser.currentStreak,
+      email: state.currentUser.email,
+      avatarPath: state.currentUser.avatarPath,
+      lastCompletedDate: state.currentUser.lastCompletedDate,
     );
-    await database.update(
-      'leaderboard',
-      {'points': 3800, 'level': 13, 'completed': 30},
-      where: 'name = ? AND initials = ?',
-      whereArgs: ['Alex Petrov', 'AP'],
-    );
+    state.leaderboard = [
+      const LeaderboardEntry(
+        rank: 1,
+        name: 'Maria Ivanova',
+        initials: 'MI',
+        level: 14,
+        completed: 35,
+        points: 5000,
+        color: Color(0xFFFFF5A6),
+      ),
+      const LeaderboardEntry(
+        rank: 2,
+        name: 'Alex Petrov',
+        initials: 'AP',
+        level: 13,
+        completed: 30,
+        points: 3800,
+        color: Color(0xFFEDEFF5),
+      ),
+    ];
 
-    await repo.completeChallengeAndAward(challenges.first.id, null);
-    final board = await repo.leaderboard();
+    await state.completeChallengeAndAward(challengeId: challenges.first.id);
+    final board = state.leaderboard;
     final userEntry = board.firstWhere((entry) => entry.initials == 'AP');
 
     expect(userEntry.rank, 2);
-    expect(userEntry.points, 4050);
+    expect(userEntry.points, 4250);
     expect(userEntry.completed, 31);
   });
 
@@ -938,7 +996,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isAuthenticated', true);
       final state = AppState(
-        repository: GeoRepository(AppDatabase.instance),
+        db: AppDatabase.instance,
         prefs: prefs,
         backendClient: backend,
       );
@@ -953,13 +1011,50 @@ void main() {
     },
   );
 
+  test(
+    'load keeps cached authenticated user when backend boot fails',
+    () async {
+      await AppDatabase.instance.resetForTest();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isAuthenticated', true);
+      await prefs.setString('cache_user', jsonEncode({
+        'name': 'Cached User',
+        'initials': 'CU',
+        'level': 9,
+        'points': 2100,
+        'nextLevelPoints': 2250,
+        'completed': 18,
+        'badges': 2,
+        'bestStreak': 6,
+        'currentStreak': 3,
+        'email': 'cached@test.com',
+        'avatarPath': null,
+        'lastCompletedDate': DateTime(2026, 4, 20).toIso8601String(),
+      }));
+      final state = AppState(
+        db: AppDatabase.instance,
+        prefs: prefs,
+        backendClient: _FailingBackendClient(),
+      );
+
+      await state.load();
+
+      expect(state.isAuthenticated, isTrue);
+      expect(state.user, isNotNull);
+      expect(state.currentUser.name, 'Cached User');
+      expect(state.currentUser.email, 'cached@test.com');
+      expect(state.challenges, isNotEmpty);
+      expect(state.leaderboard, isNotEmpty);
+    },
+  );
+
   test('backend-enabled actions push progress one-shot', () async {
     await AppDatabase.instance.resetForTest();
     final backend = _FakeBackendClient();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isAuthenticated', true);
     final state = AppState(
-      repository: GeoRepository(AppDatabase.instance),
+      db: AppDatabase.instance,
       prefs: prefs,
       backendClient: backend,
     );
@@ -1167,4 +1262,14 @@ class _FakeBackendClient implements BackendClient {
     required double longitude,
     String? recordedAt,
   }) async => _state();
+}
+
+class _FailingBackendClient extends _FakeBackendClient {
+  @override
+  Future<Map<String, dynamic>> getAppState({
+    String? name,
+    String? email,
+    String? initials,
+    String? avatarPath,
+  }) async => throw Exception('network down');
 }

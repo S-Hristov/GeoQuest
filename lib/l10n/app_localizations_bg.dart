@@ -781,4 +781,44 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get emptyLeaderboardBody =>
       'Завърши предизвикателства, за да бъдеш първият изследовател в класацията.';
+
+  @override
+  String get noNotificationsYet => 'Все още няма известия';
+
+  @override
+  String get timeJustNow => 'Току-що';
+
+  @override
+  String timeMinutesAgo(int n) {
+    return 'преди $n мин.';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    return 'преди $n ч.';
+  }
+
+  @override
+  String timeDaysAgo(int n) {
+    return 'преди $n дни';
+  }
+
+  @override
+  String get errorCompletingChallenge =>
+      'Неуспешно записване на резултата. Провери връзката.';
+
+  @override
+  String get errorStartingChallenge =>
+      'Неуспешно стартиране на предизвикателството. Провери връзката.';
+
+  @override
+  String get errorBackendBoot =>
+      'Неуспешно свързване със сървъра. Моля, влез отново.';
+
+  @override
+  String get errorUpdatingProfile =>
+      'Неуспешно записване на промените в профила.';
+
+  @override
+  String get errorGeneric => 'Нещо се обърка. Провери връзката.';
 }

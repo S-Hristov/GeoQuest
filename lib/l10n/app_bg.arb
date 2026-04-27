@@ -341,5 +341,19 @@
   "emptyCompletedChallengesTitle": "Все още няма завършени предизвикателства",
   "emptyCompletedChallengesBody": "Тук ще се показват приключенията, които си завършил.",
   "emptyLeaderboardTitle": "Класацията е празна",
-  "emptyLeaderboardBody": "Завърши предизвикателства, за да бъдеш първият изследовател в класацията."
+  "emptyLeaderboardBody": "Завърши предизвикателства, за да бъдеш първият изследовател в класацията.",
+  "notifications": "Известия",
+  "noNotificationsYet": "Все още няма известия",
+  "timeJustNow": "Току-що",
+  "timeMinutesAgo": "преди {n} мин.",
+  "@timeMinutesAgo": { "placeholders": { "n": { "type": "int" } } },
+  "timeHoursAgo": "преди {n} ч.",
+  "@timeHoursAgo": { "placeholders": { "n": { "type": "int" } } },
+  "timeDaysAgo": "преди {n} дни",
+  "@timeDaysAgo": { "placeholders": { "n": { "type": "int" } } },
+  "errorCompletingChallenge": "Неуспешно записване на резултата. Провери връзката.",
+  "errorStartingChallenge": "Неуспешно стартиране на предизвикателството. Провери връзката.",
+  "errorBackendBoot": "Неуспешно свързване със сървъра. Моля, влез отново.",
+  "errorUpdatingProfile": "Неуспешно записване на промените в профила.",
+  "errorGeneric": "Нещо се обърка. Провери връзката."
 }

@@ -22,6 +22,7 @@ class PhotoAcceptedScreen extends StatefulWidget {
 
 class _PhotoAcceptedScreenState extends State<PhotoAcceptedScreen> {
   bool _awarding = true;
+  int _prevLevel = 0;
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _PhotoAcceptedScreenState extends State<PhotoAcceptedScreen> {
   }
 
   Future<void> _award() async {
+    _prevLevel = context.read<AppState>().currentUser.level;
     await context.read<AppState>().completeChallengeAndAward(
       challengeId: widget.challenge.id,
       proofPath: widget.proofPath,
@@ -94,7 +96,7 @@ class _PhotoAcceptedScreenState extends State<PhotoAcceptedScreen> {
                   enabled: !_awarding,
                   onPressed: () => Navigator.pushReplacementNamed(
                     context,
-                    '/challenge-complete/${widget.challenge.id}',
+                    '/challenge-complete/${widget.challenge.id}?prevLevel=$_prevLevel',
                   ),
                 ),
               ],

@@ -9,11 +9,13 @@ class AuthIdentity {
     required this.uid,
     required this.name,
     required this.email,
+    this.photoUrl,
   });
 
   final String uid;
   final String name;
   final String email;
+  final String? photoUrl;
 }
 
 class AppAuthService {
@@ -60,6 +62,7 @@ class AppAuthService {
           user.email ??
           account.email,
       email: user.email ?? account.email,
+      photoUrl: account.photoUrl ?? user.photoURL,
     );
   }
 

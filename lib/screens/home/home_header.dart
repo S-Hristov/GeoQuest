@@ -13,7 +13,9 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final user = context.watch<AppState>().currentUser;
+    final app = context.watch<AppState>();
+    final user = app.currentUser;
+    final unread = app.unreadNotificationCount;
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 52, 24, 32),
       decoration: const BoxDecoration(
@@ -44,7 +46,33 @@ class HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/notifications'),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: AppColors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 4),
               ProfileAvatar(
                 user: user,
                 radius: 28,

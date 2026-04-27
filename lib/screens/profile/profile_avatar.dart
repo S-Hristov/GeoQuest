@@ -23,12 +23,17 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final path = user.avatarPath;
-    final showImage =
-        !kIsWeb && path != null && path.isNotEmpty && File(path).existsSync();
+    final isUrl = path != null && path.startsWith('http');
+    final isLocal =
+        !kIsWeb && path != null && !isUrl && path.isNotEmpty && File(path).existsSync();
+    final showImage = isUrl || isLocal;
+    ImageProvider? image;
+    if (isUrl) image = NetworkImage(path);
+    if (isLocal) image = FileImage(File(path));
     return CircleAvatar(
       radius: radius,
       backgroundColor: backgroundColor ?? AppColors.primary,
-      backgroundImage: showImage ? FileImage(File(path)) : null,
+      backgroundImage: image,
       child: showImage
           ? null
           : Text(

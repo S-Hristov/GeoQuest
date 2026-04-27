@@ -37,7 +37,9 @@ class _UploadingProofScreenState extends State<UploadingProofScreen> {
   }
 
   Future<void> _completeAndOpenResult() async {
-    final awarded = await context.read<AppState>().completeChallengeAndAward(
+    final state = context.read<AppState>();
+    final prevLevel = state.currentUser.level;
+    final awarded = await state.completeChallengeAndAward(
       challengeId: widget.challenge.id,
       proofPath: widget.proofPath,
     );
@@ -51,7 +53,7 @@ class _UploadingProofScreenState extends State<UploadingProofScreen> {
     }
     Navigator.pushReplacementNamed(
       context,
-      '/challenge-complete/${widget.challenge.id}',
+      '/challenge-complete/${widget.challenge.id}?prevLevel=$prevLevel',
     );
   }
 
