@@ -3,6 +3,8 @@ import * as admin from 'firebase-admin';
 import { ChallengeProgressRecord, ChallengeRecord, UserProfileRecord } from './contracts';
 import { FirestoreStore } from './store';
 
+const DEMO_MODE = process.env.GEOQUEST_DEMO_MODE === 'true';
+
 const nowIso = () => new Date().toISOString();
 
 function isSameUtcDay(aIso: string | null | undefined, b: Date): boolean {
@@ -242,7 +244,7 @@ export async function runDailyPushJobs(store: FirestoreStore): Promise<void> {
     const appState = await store.getOrCreateUser(user.uid).then(() => null);
     void appState;
 
-    if (daily && prefs?.dailyChallenge !== false && !isSameUtcDay(push.lastDailyAt, now)) {
+    if (daily && prefs?.dailyChallenge !== false && (!isSameUtcDay(push.lastDailyAt, now) || DEMO_MODE)) {
       await sendToUser(user, {
         title: t(locale, 'dailyTitle'),
         body: t(locale, 'dailyBody', { challenge: daily.title, points: daily.points }),
@@ -257,7 +259,7 @@ export async function runDailyPushJobs(store: FirestoreStore): Promise<void> {
       nearby &&
       nearby.distanceKm <= 1.5 &&
       prefs?.nearbyNudges !== false &&
-      !isSameUtcDay(push.lastNearbyAt, now)
+      (!isSameUtcDay(push.lastNearbyAt, now) || DEMO_MODE)
     ) {
       await sendToUser(user, {
         title: t(locale, 'nearbyTitle'),
@@ -268,7 +270,7 @@ export async function runDailyPushJobs(store: FirestoreStore): Promise<void> {
     }
 
     const streakAtRisk = (user.currentStreak ?? 0) > 0 && daysSince(user.lastCompletedDate, now) >= 1;
-    if (streakAtRisk && prefs?.streakRisk !== false && !isSameUtcDay(push.lastStreakRiskAt, now)) {
+    if (streakAtRisk && prefs?.streakRisk !== false && (!isSameUtcDay(push.lastStreakRiskAt, now) || DEMO_MODE)) {
       await sendToUser(user, {
         title: t(locale, 'streakRiskTitle'),
         body: t(locale, 'streakRiskBody'),
@@ -277,7 +279,7 @@ export async function runDailyPushJobs(store: FirestoreStore): Promise<void> {
       await store.markPushState(user.uid, { lastStreakRiskAt: nowIso() });
     }
 
-    if (prefs?.weeklyRecap !== false && !isSameUtcWeek(push.lastWeeklyAt, now) && now.getUTCDay() === 1) {
+    if (prefs?.weeklyRecap !== false && (!isSameUtcWeek(push.lastWeeklyAt, now) || DEMO_MODE) && (now.getUTCDay() === 1 || DEMO_MODE)) {
       const rank = rankByUid.get(user.uid) ?? 999;
       await sendToUser(user, {
         title: t(locale, 'weeklyTitle'),
@@ -311,7 +313,7 @@ export async function runDailyPushJobs(store: FirestoreStore): Promise<void> {
     if (
       prefs?.reEngagement !== false &&
       [3, 7, 14].includes(inactiveDays) &&
-      !isSameUtcDay(push.lastReengagementAt, now)
+      (!isSameUtcDay(push.lastReengagementAt, now) || DEMO_MODE)
     ) {
       await sendToUser(user, {
         title: t(locale, 'reengageTitle'),

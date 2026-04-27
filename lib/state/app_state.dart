@@ -1,19 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../db/app_database.dart';
-import '../domain/progression.dart';
 import '../data/mock_geoquest_data.dart' as seed;
+import '../db/app_database.dart';
+import '../domain/achievement_catalog.dart';
+import '../domain/progression.dart';
+import '../models/app_notification.dart';
 import '../models/geo_models.dart';
-import '../repositories/geo_repository.dart';
 import '../services/app_auth_service.dart';
 import '../services/firebase_backend_client.dart';
 import '../services/push_notification_service.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
-    required this.repository,
+    required this.db,
     required this.prefs,
     AppAuthService? authService,
     BackendClient? backendClient,
@@ -21,11 +24,13 @@ class AppState extends ChangeNotifier {
   }) : auth = authService ?? AppAuthService(),
        backend = backendClient ?? const FirebaseBackendClient(),
        push = pushService ?? PushNotificationService();
-  final GeoRepository repository;
+
+  final AppDatabase db;
   final SharedPreferences? prefs;
   final AppAuthService auth;
   final BackendClient backend;
   final PushNotificationService push;
+  static const _cachedUserKey = 'cache_user';
 
   ThemeMode themeMode = ThemeMode.light;
   Locale locale = const Locale('en');
@@ -36,6 +41,26 @@ class AppState extends ChangeNotifier {
   bool cameraEnabled = false;
   ActiveChallengeState? activeChallengeState;
   UserProfile? user;
+  final List<AppNotification> notifications = [];
+
+  int get unreadNotificationCount => notifications.where((n) => !n.read).length;
+
+  void addNotification(AppNotification n) {
+    notifications.insert(0, n);
+    notifyListeners();
+    db.insertNotification(n);
+  }
+
+  void clearSyncError() => syncError = null;
+
+  void markAllNotificationsRead() {
+    for (final n in notifications) {
+      n.read = true;
+    }
+    notifyListeners();
+    db.markAllNotificationsRead();
+  }
+
   List<Challenge> challenges = [];
   List<LeaderboardEntry> leaderboard = [];
   Set<String> completedChallengeIds = <String>{};
@@ -48,10 +73,7 @@ class AppState extends ChangeNotifier {
   DateTime? lastSyncAt;
 
   factory AppState.test() {
-    final state = AppState(
-      repository: GeoRepository(AppDatabase.instance),
-      prefs: null,
-    );
+    final state = AppState(db: AppDatabase.instance, prefs: null);
     state.onboardingSeen = false;
     state.isAuthenticated = false;
     state.notificationsEnabled = true;
@@ -70,30 +92,48 @@ class AppState extends ChangeNotifier {
   static Future<AppState> create({bool enablePush = true}) async {
     WidgetsFlutterBinding.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
-    final state = AppState(
-      repository: GeoRepository(AppDatabase.instance),
-      prefs: prefs,
-    );
+    final state = AppState(db: AppDatabase.instance, prefs: prefs);
     await state.load();
-    if (enablePush && state.onboardingSeen && state.notificationsEnabled) {
-      await state.push.initIfConfigured();
+    if (enablePush && state.onboardingSeen) {
+      if (state.notificationsEnabled) {
+        state.push.onMessage = (title, body, type) => state.addNotification(
+          AppNotification(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: title,
+            body: body,
+            receivedAt: DateTime.now(),
+            type: type,
+          ),
+        );
+        state.push.onMessageOpenedApp = (title, body, type) =>
+            state.addNotification(
+              AppNotification(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                title: title,
+                body: body,
+                receivedAt: DateTime.now(),
+                type: type,
+              ),
+            );
+        await state.push.initIfConfigured();
+      }
       await state._syncPushRegistrationIfPossible();
     }
     return state;
   }
 
   Future<void> load() async {
-    themeMode = prefs?.getBool('darkMode') == true
-        ? ThemeMode.dark
-        : ThemeMode.light;
+    themeMode = prefs?.getBool('darkMode') == true ? ThemeMode.dark : ThemeMode.light;
     locale = Locale(prefs?.getString('locale') ?? 'en');
     onboardingSeen = prefs?.getBool('onboardingSeen') == true;
     isAuthenticated = prefs?.getBool('isAuthenticated') == true;
     notificationsEnabled = prefs?.getBool('notificationsEnabled') ?? true;
     locationEnabled = prefs?.getBool('locationEnabled') ?? false;
     cameraEnabled = prefs?.getBool('cameraEnabled') ?? false;
-    // SQLite local cache disabled. Keep state empty until backend sync.
-    user = null;
+    final saved = await db.loadNotifications();
+    notifications.clear();
+    notifications.addAll(saved);
+    user = isAuthenticated ? _loadCachedUser() : null;
     challenges = [];
     leaderboard = [];
     activeChallengeState = null;
@@ -102,19 +142,15 @@ class AppState extends ChangeNotifier {
     unlockedAchievements = [];
     final lastSyncRaw = prefs?.getString('lastSyncAt');
     lastSyncAt = lastSyncRaw == null ? null : DateTime.tryParse(lastSyncRaw);
-    debugPrint(
-      '🧨🧨🧨 BACKEND BOOT START | AppState.load -> _refreshFromBackend()',
-    );
+    _loadPublicCache();
+    debugPrint('🧨 BACKEND BOOT START');
     try {
       await _refreshInitialData();
-      debugPrint(
-        '✅✅✅ BACKEND BOOT OK | AppState.load <- _refreshFromBackend()',
-      );
+      debugPrint('✅ BACKEND BOOT OK');
     } catch (error) {
-      syncError = error.toString();
-      debugPrint(
-        '❌❌❌ BACKEND BOOT FAIL | AppState.load | syncError=$syncError',
-      );
+      syncError = 'BACKEND BOOT: $error';
+      debugPrint('❌ BACKEND BOOT FAIL | $syncError');
+      _ensurePublicFallbackData();
     }
     notifyListeners();
   }
@@ -136,8 +172,7 @@ class AppState extends ChangeNotifier {
         .whereType<Challenge>()
         .toList();
     if (ordered.isNotEmpty) return ordered;
-    final copy = [...challenges]
-      ..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+    final copy = [...challenges]..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
     return copy.take(3).toList();
   }
 
@@ -150,8 +185,7 @@ class AppState extends ChangeNotifier {
       ? null
       : challenges.where((c) => c.id == activeChallengeId).firstOrNull;
 
-  bool isChallengeActive(String challengeId) =>
-      activeChallengeId == challengeId;
+  bool isChallengeActive(String challengeId) => activeChallengeId == challengeId;
 
   bool isChallengeCompleted(String challengeId) =>
       completedChallengeIds.contains(challengeId) ||
@@ -186,7 +220,20 @@ class AppState extends ChangeNotifier {
   Future<void> signOut() async {
     await auth.signOut();
     isAuthenticated = false;
+    user = null;
+    await _clearUserCache();
+    challenges = [];
+    leaderboard = [];
+    completedChallengeIds = <String>{};
+    achievementsInProgress = [];
+    unlockedAchievements = [];
+    activeChallengeState = null;
     await prefs?.setBool('isAuthenticated', false);
+    try {
+      await _refreshPublicData();
+    } catch (_) {
+      _ensurePublicFallbackData();
+    }
     notifyListeners();
   }
 
@@ -209,13 +256,17 @@ class AppState extends ChangeNotifier {
   Future<void> startChallenge(String challengeId) async {
     if (isChallengeCompleted(challengeId)) {
       syncError = 'startChallenge blocked: challenge already completed';
-      debugPrint('⚠️ startChallenge blocked: challenge already completed');
+      debugPrint('⚠️ startChallenge blocked: already completed');
       notifyListeners();
       return;
     }
     if (!isAuthenticated) {
-      await repository.startChallenge(challengeId);
-      activeChallengeState = await repository.activeChallengeState();
+      activeChallengeState = ActiveChallengeState(
+        challengeId: challengeId,
+        startedAt: DateTime.now(),
+        status: ActiveChallengeStatus.active,
+        lastRouteShownAt: null,
+      );
       notifyListeners();
       return;
     }
@@ -223,23 +274,24 @@ class AppState extends ChangeNotifier {
       final state = await backend.startChallenge(challengeId);
       _applyRemoteState(state);
       notifyListeners();
-      return;
     } catch (error) {
-      if (prefs == null) {
-        await repository.startChallenge(challengeId);
-        activeChallengeState = await repository.activeChallengeState();
-      } else {
-        syncError = 'startChallenge failed: $error';
-        debugPrint('❌ startChallenge failed: $error');
-      }
+      syncError = 'startChallenge failed: $error';
+      debugPrint('❌ startChallenge failed: $error');
       notifyListeners();
     }
   }
 
   Future<void> markRouteShown(String challengeId) async {
     if (!isAuthenticated) {
-      await repository.markRouteShown(challengeId);
-      activeChallengeState = await repository.activeChallengeState();
+      final prev = activeChallengeState;
+      if (prev?.challengeId == challengeId) {
+        activeChallengeState = ActiveChallengeState(
+          challengeId: challengeId,
+          startedAt: prev!.startedAt,
+          status: prev.status,
+          lastRouteShownAt: DateTime.now(),
+        );
+      }
       notifyListeners();
       return;
     }
@@ -247,15 +299,9 @@ class AppState extends ChangeNotifier {
       final state = await backend.markRouteShown(challengeId);
       _applyRemoteState(state);
       notifyListeners();
-      return;
     } catch (error) {
-      if (prefs == null) {
-        await repository.markRouteShown(challengeId);
-        activeChallengeState = await repository.activeChallengeState();
-      } else {
-        syncError = 'markRouteShown failed: $error';
-        debugPrint('❌ markRouteShown failed: $error');
-      }
+      syncError = 'markRouteShown failed: $error';
+      debugPrint('❌ markRouteShown failed: $error');
       notifyListeners();
     }
   }
@@ -268,9 +314,7 @@ class AppState extends ChangeNotifier {
     final normalizedName = name.trim();
     final normalizedEmail = email.trim();
     if (normalizedName.isEmpty) return false;
-    final emailOk = RegExp(
-      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-    ).hasMatch(normalizedEmail);
+    final emailOk = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(normalizedEmail);
     if (!emailOk) return false;
 
     if (prefs == null || !isAuthenticated) {
@@ -296,16 +340,11 @@ class AppState extends ChangeNotifier {
         avatarPath: avatarPath,
         lastCompletedDate: current.lastCompletedDate,
       );
+      await _saveUserCache();
       notifyListeners();
       return true;
     }
 
-    await repository.updateUserProfile(
-      name: normalizedName,
-      email: normalizedEmail,
-      avatarPath: avatarPath,
-    );
-    user = await repository.currentUser();
     final initials = normalizedName
         .split(RegExp(r'\s+'))
         .where((part) => part.isNotEmpty)
@@ -313,17 +352,24 @@ class AppState extends ChangeNotifier {
         .map((part) => part[0])
         .join()
         .toUpperCase();
-    final result = await backend.updateProfile(
-      name: normalizedName,
-      email: normalizedEmail,
-      initials: initials.isEmpty ? currentUser.initials : initials,
-      avatarPath: avatarPath,
-    );
-    final remoteUser = result['user'];
-    if (remoteUser is Map) {
-      _applyRemoteState({'user': remoteUser});
-    } else {
-      await _refreshFromBackend();
+    try {
+      final result = await backend.updateProfile(
+        name: normalizedName,
+        email: normalizedEmail,
+        initials: initials.isEmpty ? currentUser.initials : initials,
+        avatarPath: avatarPath,
+      );
+      final remoteUser = result['user'];
+      if (remoteUser is Map) {
+        _applyRemoteState({'user': remoteUser});
+      } else {
+        await _refreshFromBackend();
+      }
+    } catch (error) {
+      syncError = 'updateProfile failed: $error';
+      debugPrint('❌ updateProfile failed: $error');
+      notifyListeners();
+      return false;
     }
     notifyListeners();
     return true;
@@ -333,7 +379,7 @@ class AppState extends ChangeNotifier {
     required String challengeId,
     String? proofPath,
   }) async {
-    if (prefs == null || !isAuthenticated) {
+    if (!isAuthenticated) {
       return _completeChallengeAndAwardLocally(
         challengeId: challengeId,
         proofPath: proofPath,
@@ -341,10 +387,7 @@ class AppState extends ChangeNotifier {
     }
 
     try {
-      final result = await backend.completeChallenge(
-        challengeId,
-        proofPath: proofPath,
-      );
+      final result = await backend.completeChallenge(challengeId, proofPath: proofPath);
       final awardedRemote = result['awarded'] == true;
       final state = result['state'];
       if (state is Map) {
@@ -372,7 +415,10 @@ class AppState extends ChangeNotifier {
     final alreadyCompleted =
         activeChallengeState?.status == ActiveChallengeStatus.completed &&
         activeChallengeState?.challengeId == challengeId;
-    if (alreadyCompleted) return false;
+    if (alreadyCompleted || completedChallengeIds.contains(challengeId)) {
+      return false;
+    }
+
     final newCompleted = current.completed + 1;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -394,22 +440,27 @@ class AppState extends ChangeNotifier {
     final nextBestStreak = nextCurrentStreak > current.bestStreak
         ? nextCurrentStreak
         : current.bestStreak;
-    final category = challenge.category.toLowerCase();
+
     final progressMap = <String, int>{
       'first_challenge': newCompleted > 0 ? 1 : 0,
       'five_challenges': newCompleted > 5 ? 5 : newCompleted,
-      'first_nature': category.contains('nature') ? 1 : 0,
-      'first_cultural':
-          (category.contains('culture') || category.contains('cultural'))
-          ? 1
-          : 0,
-      'first_historical': category.contains('historical') ? 1 : 0,
-      'first_adventure': category.contains('adventure') ? 1 : 0,
+      'first_nature': 0,
+      'first_cultural': 0,
+      'first_historical': 0,
+      'first_adventure': 0,
       'three_day_streak': nextCurrentStreak > 3 ? 3 : nextCurrentStreak,
     };
-    final unlockedIds = unlockedAchievements
-        .map((achievement) => achievement.title)
-        .toSet();
+
+    final category = challenge.category.toLowerCase();
+    if (category.contains('nature')) progressMap['first_nature'] = 1;
+    if (category.contains('culture') || category.contains('cultural')) {
+      progressMap['first_cultural'] = 1;
+    }
+    if (category.contains('historical')) {
+      progressMap['first_historical'] = 1;
+    }
+    if (category.contains('adventure')) progressMap['first_adventure'] = 1;
+
     final achievementRewardById = <String, int>{
       'first_challenge': 50,
       'five_challenges': 120,
@@ -419,56 +470,76 @@ class AppState extends ChangeNotifier {
       'first_adventure': 40,
       'three_day_streak': 80,
     };
-    String titleForId(String id) => switch (id) {
-      'first_challenge' => 'First Steps',
-      'five_challenges' => 'Challenge Seeker',
-      'first_nature' => 'Nature Explorer',
-      'first_cultural' => 'Culture Lover',
-      'first_historical' => 'History Hunter',
-      'first_adventure' => 'Adventure Awaits',
-      'three_day_streak' => 'Streak Starter',
-      _ => id,
+    const achievementTitleById = <String, String>{
+      'first_challenge': 'First Steps',
+      'five_challenges': 'Challenge Seeker',
+      'first_nature': 'Nature Explorer',
+      'first_cultural': 'Culture Lover',
+      'first_historical': 'History Hunter',
+      'first_adventure': 'Adventure Awaits',
+      'three_day_streak': 'Streak Starter',
     };
+
+    final unlockedTitles = unlockedAchievements.map((a) => a.title).toSet();
     var achievementBonusPoints = 0;
+    final newUnlockIds = <String>[];
     for (final entry in progressMap.entries) {
-      final needsUnlock = switch (entry.key) {
+      final shouldUnlock = switch (entry.key) {
         'five_challenges' => entry.value >= 5,
         'three_day_streak' => entry.value >= 3,
         _ => entry.value >= 1,
       };
-      final title = titleForId(entry.key);
-      if (needsUnlock) {
-        final isNew = !unlockedIds.contains(title);
-        unlockedIds.add(title);
-        if (isNew) {
-          achievementBonusPoints += achievementRewardById[entry.key] ?? 0;
-        }
+      final title = achievementTitleById[entry.key]!;
+      if (shouldUnlock && !unlockedTitles.contains(title)) {
+        unlockedTitles.add(title);
+        newUnlockIds.add(entry.key);
+        achievementBonusPoints += achievementRewardById[entry.key] ?? 0;
       }
     }
+
     final totalPointsAwarded = challenge.points + achievementBonusPoints;
     user = UserProfile(
       name: current.name,
       initials: current.initials,
       level: levelForPoints(current.points + totalPointsAwarded),
       points: current.points + totalPointsAwarded,
-      nextLevelPoints: nextLevelPointsForPoints(
-        current.points + totalPointsAwarded,
-      ),
+      nextLevelPoints: nextLevelPointsForPoints(current.points + totalPointsAwarded),
       completed: newCompleted,
-      badges: unlockedIds.length,
+      badges: unlockedTitles.length,
       bestStreak: nextBestStreak,
       currentStreak: nextCurrentStreak,
       email: current.email,
       avatarPath: current.avatarPath,
       lastCompletedDate: today,
     );
+    await _saveUserCache();
     activeChallengeState = ActiveChallengeState(
       challengeId: challengeId,
-      startedAt: activeChallengeState?.startedAt ?? DateTime.now(),
+      startedAt: activeChallengeState?.startedAt ?? now,
       status: ActiveChallengeStatus.completed,
       lastRouteShownAt: activeChallengeState?.lastRouteShownAt,
     );
     completedChallengeIds = {...completedChallengeIds, challengeId};
+
+    if (newUnlockIds.isNotEmpty) {
+      final unlockedOn = _formatAchievementUnlockDate(now);
+      final newUnlocks = newUnlockIds
+          .map(
+            (id) => _achievementFromLocalCatalog(
+              id,
+              progress: progressMap[id] ?? 0,
+              unlocked: unlockedOn,
+              rewardPoints: achievementRewardById[id] ?? 0,
+            ),
+          )
+          .whereType<Achievement>()
+          .toList();
+      unlockedAchievements = [...newUnlocks, ...unlockedAchievements];
+      achievementsInProgress = achievementsInProgress
+          .where((a) => !unlockedTitles.contains(a.title))
+          .toList();
+    }
+
     leaderboard =
         leaderboard.map((entry) {
           final sameUser =
@@ -502,11 +573,44 @@ class AppState extends ChangeNotifier {
           color: leaderboard[i].color,
         ),
     ];
+
     if (proofPath != null) {
       debugPrint('📸 local proof stored at $proofPath');
     }
     notifyListeners();
     return true;
+  }
+
+  Achievement? _achievementFromLocalCatalog(
+    String id, {
+    required int progress,
+    required String unlocked,
+    required int rewardPoints,
+  }) {
+    for (final entry in achievementCatalog) {
+      if (entry.id != id) continue;
+      final achievement = achievementFromCatalog(
+        entry,
+        progress: progress,
+        unlocked: unlocked,
+      );
+      return Achievement(
+        title: achievement.title,
+        subtitle: achievement.subtitle,
+        icon: achievement.icon,
+        rewardPoints: rewardPoints,
+        progress: achievement.progress,
+        total: achievement.total,
+        unlocked: achievement.unlocked,
+      );
+    }
+    return null;
+  }
+
+  String _formatAchievementUnlockDate(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    return '$day/$month/${value.year}';
   }
 
   Future<void> setDarkMode(bool enabled) async {
@@ -533,6 +637,8 @@ class AppState extends ChangeNotifier {
       avatarPath: user?.avatarPath,
     );
     _applyRemoteState(state);
+    _savePublicCache(state);
+    await _saveUserCache();
   }
 
   Future<void> _refreshInitialData() async {
@@ -546,7 +652,39 @@ class AppState extends ChangeNotifier {
   Future<void> _refreshPublicData() async {
     final challenges = await backend.getChallenges();
     final leaderboard = await backend.getLeaderboard();
-    _applyRemoteState({'challenges': challenges, 'leaderboard': leaderboard});
+    final data = {'challenges': challenges, 'leaderboard': leaderboard};
+    _applyRemoteState(data);
+    _savePublicCache(data);
+  }
+
+  void _ensurePublicFallbackData() {
+    if (challenges.isEmpty) {
+      challenges = seed.challenges;
+      dailyChallengeId ??= seed.challenges.firstOrNull?.id;
+      nearbyChallengeIds = seed.challenges.take(3).map((c) => c.id).toList();
+    }
+    if (leaderboard.isEmpty) {
+      leaderboard = seed.leaderboard;
+    }
+  }
+
+  void _loadPublicCache() {
+    try {
+      final cj = prefs?.getString('cache_challenges');
+      final lj = prefs?.getString('cache_leaderboard');
+      if (cj != null) _applyRemoteState({'challenges': jsonDecode(cj)});
+      if (lj != null) _applyRemoteState({'leaderboard': jsonDecode(lj)});
+    } catch (_) {}
+  }
+
+  void _savePublicCache(Map<String, dynamic> data) {
+    if (prefs == null) return;
+    if (data['challenges'] is List) {
+      prefs!.setString('cache_challenges', jsonEncode(data['challenges']));
+    }
+    if (data['leaderboard'] is List) {
+      prefs!.setString('cache_leaderboard', jsonEncode(data['leaderboard']));
+    }
   }
 
   Future<bool> syncNow() async {
@@ -570,35 +708,70 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> _syncProfileToBackend() async {
-    if (user == null || !isAuthenticated) return const {};
-    return backend.syncUserProfile(
+  Future<void> _syncProfileToBackend() async {
+    if (user == null || !isAuthenticated) return;
+    final state = await backend.syncUserProfile(
       name: currentUser.name,
       email: currentUser.email,
       initials: currentUser.initials,
       avatarPath: currentUser.avatarPath,
     );
+    if (state.isNotEmpty) _applyRemoteState(state);
+    await _saveUserCache();
+  }
+
+  UserProfile _userFromIdentity(AuthIdentity identity) {
+    final trimmedName = identity.name.trim();
+    final initials = trimmedName
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .take(2)
+        .map((p) => p[0])
+        .join()
+        .toUpperCase();
+    final prev = user;
+    return UserProfile(
+      name: trimmedName,
+      initials: initials.isEmpty ? 'U' : initials,
+      level: prev?.level ?? 1,
+      points: prev?.points ?? 0,
+      nextLevelPoints: prev?.nextLevelPoints ?? 250,
+      completed: prev?.completed ?? 0,
+      badges: prev?.badges ?? 0,
+      bestStreak: prev?.bestStreak ?? 0,
+      currentStreak: prev?.currentStreak ?? 0,
+      email: identity.email,
+      avatarPath: identity.photoUrl ?? prev?.avatarPath,
+      lastCompletedDate: prev?.lastCompletedDate,
+    );
+  }
+
+  Future<bool> signInWithGoogle() async {
+    try {
+      final identity = await auth.signInWithGoogle();
+      if (identity == null) return false;
+      user = _userFromIdentity(identity);
+      await _saveUserCache();
+      await setAuthenticated(true);
+      await _syncProfileToBackend();
+      await _syncPushRegistrationIfPossible();
+      notifyListeners();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<bool> signInWithEmail(String email, String password) async {
     final trimmedEmail = email.trim();
     if (trimmedEmail.isEmpty || password.isEmpty) return false;
     try {
-      final result = await auth.signInWithEmail(trimmedEmail, password);
-      if (result == null) return false;
-      await repository.updateUserProfile(
-        name: result.name,
-        email: result.email,
-        avatarPath: currentUser.avatarPath,
-      );
-      user = await repository.currentUser();
-      final state = await _syncProfileToBackend();
+      final identity = await auth.signInWithEmail(trimmedEmail, password);
+      if (identity == null) return false;
+      user = _userFromIdentity(identity);
+      await _saveUserCache();
       await setAuthenticated(true);
-      if (state.isNotEmpty) {
-        _applyRemoteState(state);
-      } else {
-        await _refreshFromBackend();
-      }
+      await _syncProfileToBackend();
       await _syncPushRegistrationIfPossible();
       notifyListeners();
       return true;
@@ -614,29 +787,18 @@ class AppState extends ChangeNotifier {
   }) async {
     final trimmedName = name.trim();
     final trimmedEmail = email.trim();
-    if (trimmedName.isEmpty || trimmedEmail.isEmpty || password.length < 6) {
-      return false;
-    }
+    if (trimmedName.isEmpty || trimmedEmail.isEmpty || password.length < 6) return false;
     try {
-      final result = await auth.signUpWithEmail(
+      final identity = await auth.signUpWithEmail(
         name: trimmedName,
         email: trimmedEmail,
         password: password,
       );
-      if (result == null) return false;
-      await repository.updateUserProfile(
-        name: result.name,
-        email: result.email,
-        avatarPath: currentUser.avatarPath,
-      );
-      user = await repository.currentUser();
-      final state = await _syncProfileToBackend();
+      if (identity == null) return false;
+      user = _userFromIdentity(identity);
+      await _saveUserCache();
       await setAuthenticated(true);
-      if (state.isNotEmpty) {
-        _applyRemoteState(state);
-      } else {
-        await _refreshFromBackend();
-      }
+      await _syncProfileToBackend();
       await _syncPushRegistrationIfPossible();
       notifyListeners();
       return true;
@@ -668,10 +830,7 @@ class AppState extends ChangeNotifier {
         initials: _str(map['initials'], currentUser.initials),
         level: _int(map['level'], currentUser.level),
         points: _int(map['points'], currentUser.points),
-        nextLevelPoints: _int(
-          map['nextLevelPoints'],
-          currentUser.nextLevelPoints,
-        ),
+        nextLevelPoints: _int(map['nextLevelPoints'], currentUser.nextLevelPoints),
         completed: _int(map['completed'], currentUser.completed),
         badges: _int(map['badges'], currentUser.badges),
         bestStreak: _int(map['bestStreak'], currentUser.bestStreak),
@@ -695,10 +854,7 @@ class AppState extends ChangeNotifier {
               title: _str(item['title']),
               location: _str(item['location']),
               description: _str(item['description']),
-              imageAsset: _str(
-                item['imageAsset'],
-                'assets/Image-Old-Town-Plovdiv@2x.png',
-              ),
+              imageAsset: _str(item['imageAsset'], 'assets/Image-Old-Town-Plovdiv@2x.png'),
               distanceKm: _double(item['distanceKm']),
               points: _int(item['points']),
               duration: _str(item['duration']),
@@ -799,29 +955,59 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<bool> signInWithGoogle() async {
+  UserProfile? _loadCachedUser() {
+    final raw = prefs?.getString(_cachedUserKey);
+    if (raw == null || raw.isEmpty) return null;
     try {
-      final result = await auth.signInWithGoogle();
-      if (result == null) return false;
-      await repository.saveGoogleUser(
-        googleId: result.uid,
-        name: result.name,
-        email: result.email,
+      final map = jsonDecode(raw);
+      if (map is! Map) return null;
+      final data = Map<String, dynamic>.from(map);
+      return UserProfile(
+        name: data['name'] as String? ?? 'Explorer',
+        initials: data['initials'] as String? ?? 'EX',
+        level: (data['level'] as num?)?.toInt() ?? 1,
+        points: (data['points'] as num?)?.toInt() ?? 0,
+        nextLevelPoints: (data['nextLevelPoints'] as num?)?.toInt() ?? 250,
+        completed: (data['completed'] as num?)?.toInt() ?? 0,
+        badges: (data['badges'] as num?)?.toInt() ?? 0,
+        bestStreak: (data['bestStreak'] as num?)?.toInt() ?? 0,
+        currentStreak: (data['currentStreak'] as num?)?.toInt() ?? 0,
+        email: data['email'] as String? ?? '',
+        avatarPath: data['avatarPath'] as String?,
+        lastCompletedDate: data['lastCompletedDate'] == null
+            ? null
+            : DateTime.tryParse(data['lastCompletedDate'] as String),
       );
-      user = await repository.currentUser();
-      final state = await _syncProfileToBackend();
-      await setAuthenticated(true);
-      if (state.isNotEmpty) {
-        _applyRemoteState(state);
-      } else {
-        await _refreshFromBackend();
-      }
-      await _syncPushRegistrationIfPossible();
-      notifyListeners();
-      return true;
     } catch (_) {
-      return false;
+      return null;
     }
+  }
+
+  Future<void> _saveUserCache() async {
+    if (prefs == null) return;
+    final current = user;
+    if (current == null) {
+      await _clearUserCache();
+      return;
+    }
+    await prefs!.setString(_cachedUserKey, jsonEncode({
+      'name': current.name,
+      'initials': current.initials,
+      'level': current.level,
+      'points': current.points,
+      'nextLevelPoints': current.nextLevelPoints,
+      'completed': current.completed,
+      'badges': current.badges,
+      'bestStreak': current.bestStreak,
+      'currentStreak': current.currentStreak,
+      'email': current.email,
+      'avatarPath': current.avatarPath,
+      'lastCompletedDate': current.lastCompletedDate?.toIso8601String(),
+    }));
+  }
+
+  Future<void> _clearUserCache() async {
+    await prefs?.remove(_cachedUserKey);
   }
 
   Future<void> _syncPushRegistrationIfPossible() async {
@@ -872,9 +1058,7 @@ class AppState extends ChangeNotifier {
         return;
       }
       final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       await backend.updateUserLocation(
         latitude: pos.latitude,

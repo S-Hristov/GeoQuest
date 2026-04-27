@@ -1,7 +1,6 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
-import '../data/mock_geoquest_data.dart';
-import '../models/geo_models.dart';
+import '../models/app_notification.dart';
 
 class AppDatabase {
   AppDatabase._();
@@ -13,49 +12,38 @@ class AppDatabase {
     final path = p.join(await getDatabasesPath(), 'geoquest.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 7,
       onCreate: (db, _) async {
         await db.execute(
-          'CREATE TABLE users(id TEXT PRIMARY KEY, name TEXT NOT NULL, initials TEXT NOT NULL, email TEXT NOT NULL, level INTEGER NOT NULL, points INTEGER NOT NULL, nextLevelPoints INTEGER NOT NULL, completed INTEGER NOT NULL, badges INTEGER NOT NULL, bestStreak INTEGER NOT NULL, currentStreak INTEGER NOT NULL, googleId TEXT, avatarPath TEXT, lastCompletedDate TEXT)',
+          'CREATE TABLE notifications(id TEXT PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, receivedAt TEXT NOT NULL, type TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0)',
         );
-        await db.execute(
-          'CREATE TABLE challenges(id TEXT PRIMARY KEY, title TEXT NOT NULL, location TEXT NOT NULL, description TEXT NOT NULL, imageAsset TEXT NOT NULL, distanceKm REAL NOT NULL, points INTEGER NOT NULL, duration TEXT NOT NULL, difficulty TEXT NOT NULL, category TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, explorersCompleted INTEGER NOT NULL)',
-        );
-        await db.execute(
-          'CREATE TABLE achievements(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, subtitle TEXT NOT NULL, icon TEXT NOT NULL, progress INTEGER NOT NULL, total INTEGER NOT NULL, unlocked TEXT NOT NULL)',
-        );
-        await db.execute(
-          'CREATE TABLE leaderboard(rank INTEGER PRIMARY KEY, name TEXT NOT NULL, initials TEXT NOT NULL, level INTEGER NOT NULL, completed INTEGER NOT NULL, points INTEGER NOT NULL, color INTEGER NOT NULL)',
-        );
-        await db.execute(
-          'CREATE TABLE challenge_progress(userId TEXT NOT NULL, challengeId TEXT NOT NULL, status TEXT NOT NULL, startedAt TEXT, completedAt TEXT, lastRouteShownAt TEXT, proofPath TEXT, PRIMARY KEY(userId, challengeId))',
-        );
-        await db.execute(
-          'CREATE TABLE user_achievements(userId TEXT NOT NULL, achievementId TEXT NOT NULL, unlockedAt TEXT NOT NULL, PRIMARY KEY(userId, achievementId))',
-        );
-        await seed(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db.execute(
-            "ALTER TABLE challenge_progress ADD COLUMN startedAt TEXT",
-          );
-          await db.execute(
-            "ALTER TABLE challenge_progress ADD COLUMN lastRouteShownAt TEXT",
-          );
+          await db.execute("ALTER TABLE challenge_progress ADD COLUMN startedAt TEXT");
+          await db.execute("ALTER TABLE challenge_progress ADD COLUMN lastRouteShownAt TEXT");
         }
         if (oldVersion < 3) {
           await db.execute("ALTER TABLE users ADD COLUMN avatarPath TEXT");
         }
         if (oldVersion < 4) {
-          await db.execute(
-            "ALTER TABLE users ADD COLUMN lastCompletedDate TEXT",
-          );
+          await db.execute("ALTER TABLE users ADD COLUMN lastCompletedDate TEXT");
         }
         if (oldVersion < 5) {
           await db.execute(
             'CREATE TABLE user_achievements(userId TEXT NOT NULL, achievementId TEXT NOT NULL, unlockedAt TEXT NOT NULL, PRIMARY KEY(userId, achievementId))',
           );
+        }
+        if (oldVersion < 6) {
+          await db.execute(
+            'CREATE TABLE notifications(id TEXT PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, receivedAt TEXT NOT NULL, type TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0)',
+          );
+        }
+        if (oldVersion < 7) {
+          // All user/challenge data now lives in Firestore exclusively.
+          for (final table in ['users', 'challenges', 'achievements', 'leaderboard', 'challenge_progress', 'user_achievements']) {
+            await db.execute('DROP TABLE IF EXISTS $table');
+          }
         }
       },
     );
@@ -71,66 +59,40 @@ class AppDatabase {
     await deleteDatabase(path);
   }
 
-  Future<void> seed(Database db) async {
-    await db.insert(
-      'users',
-      _userMap(currentUser),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    for (final c in challenges) {
-      await db.insert(
-        'challenges',
-        _challengeMap(c),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    for (final e in leaderboard) {
-      await db.insert(
-        'leaderboard',
-        _leaderboardMap(e),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
+  Future<List<AppNotification>> loadNotifications() async {
+    final db = await database;
+    final rows = await db.query('notifications', orderBy: 'receivedAt DESC', limit: 50);
+    return rows.map((r) => AppNotification(
+      id: r['id'] as String,
+      title: r['title'] as String,
+      body: r['body'] as String,
+      receivedAt: DateTime.parse(r['receivedAt'] as String),
+      type: r['type'] as String,
+      read: (r['read'] as int) == 1,
+    )).toList();
   }
 
-  Map<String, Object?> _userMap(UserProfile u) => {
-    'id': 'local-user',
-    'name': u.name,
-    'initials': u.initials,
-    'email': u.email,
-    'level': u.level,
-    'points': u.points,
-    'nextLevelPoints': u.nextLevelPoints,
-    'completed': u.completed,
-    'badges': u.badges,
-    'bestStreak': u.bestStreak,
-    'currentStreak': u.currentStreak,
-    'googleId': null,
-    'avatarPath': u.avatarPath,
-    'lastCompletedDate': u.lastCompletedDate?.toIso8601String(),
-  };
-  Map<String, Object?> _challengeMap(Challenge c) => {
-    'id': c.id,
-    'title': c.title,
-    'location': c.location,
-    'description': c.description,
-    'imageAsset': c.imageAsset,
-    'distanceKm': c.distanceKm,
-    'points': c.points,
-    'duration': c.duration,
-    'difficulty': c.difficulty.name,
-    'category': c.category,
-    'latitude': c.latitude,
-    'longitude': c.longitude,
-    'explorersCompleted': c.explorersCompleted,
-  };
-  Map<String, Object?> _leaderboardMap(LeaderboardEntry e) => {
-    'rank': e.rank,
-    'name': e.name,
-    'initials': e.initials,
-    'level': e.level,
-    'completed': e.completed,
-    'points': e.points,
-    'color': e.color.toARGB32(),
-  };
+  Future<void> insertNotification(AppNotification n) async {
+    final db = await database;
+    await db.insert(
+      'notifications',
+      {
+        'id': n.id,
+        'title': n.title,
+        'body': n.body,
+        'receivedAt': n.receivedAt.toIso8601String(),
+        'type': n.type,
+        'read': n.read ? 1 : 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    await db.execute(
+      'DELETE FROM notifications WHERE id NOT IN (SELECT id FROM notifications ORDER BY receivedAt DESC LIMIT 50)',
+    );
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    final db = await database;
+    await db.update('notifications', {'read': 1});
+  }
 }
