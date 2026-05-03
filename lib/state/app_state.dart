@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../data/mock_geoquest_data.dart' as seed;
 import '../db/app_database.dart';
 import '../domain/achievement_catalog.dart';
 import '../domain/progression.dart';
@@ -32,6 +31,18 @@ class AppState extends ChangeNotifier {
   final BackendClient backend;
   final PushNotificationService push;
   static const _cachedUserKey = 'cache_user';
+  static const _emptyUser = UserProfile(
+    name: '',
+    initials: 'U',
+    level: 1,
+    points: 0,
+    nextLevelPoints: 250,
+    completed: 0,
+    badges: 0,
+    bestStreak: 0,
+    currentStreak: 0,
+    email: '',
+  );
 
   ThemeMode themeMode = ThemeMode.light;
   Locale locale = const Locale('en');
@@ -67,6 +78,9 @@ class AppState extends ChangeNotifier {
   Set<String> completedChallengeIds = <String>{};
   List<Achievement> achievementsInProgress = [];
   List<Achievement> unlockedAchievements = [];
+  List<Achievement> lastCompletionUnlockedAchievements = [];
+  int? lastCompletionChallengePoints;
+  int? lastCompletionTotalPointsAwarded;
   String? dailyChallengeId;
   List<String> nearbyChallengeIds = [];
   bool syncInProgress = false;
@@ -80,13 +94,13 @@ class AppState extends ChangeNotifier {
     state.notificationsEnabled = true;
     state.locationEnabled = false;
     state.cameraEnabled = false;
-    state.user = seed.currentUser;
-    state.challenges = seed.challenges;
-    state.leaderboard = seed.leaderboard;
+    state.user = _emptyUser;
+    state.challenges = const [];
+    state.leaderboard = const [];
     state.activeChallengeState = null;
     state.completedChallengeIds = <String>{};
-    state.achievementsInProgress = seed.achievements;
-    state.unlockedAchievements = seed.unlockedAchievements;
+    state.achievementsInProgress = const [];
+    state.unlockedAchievements = const [];
     return state;
   }
 
@@ -141,9 +155,11 @@ class AppState extends ChangeNotifier {
     completedChallengeIds = <String>{};
     achievementsInProgress = [];
     unlockedAchievements = [];
+    lastCompletionUnlockedAchievements = [];
+    lastCompletionChallengePoints = null;
+    lastCompletionTotalPointsAwarded = null;
     final lastSyncRaw = prefs?.getString('lastSyncAt');
     lastSyncAt = lastSyncRaw == null ? null : DateTime.tryParse(lastSyncRaw);
-    _loadPublicCache();
     debugPrint('🧨 BACKEND BOOT START');
     try {
       await _refreshInitialData();
@@ -151,16 +167,17 @@ class AppState extends ChangeNotifier {
     } catch (error) {
       syncError = 'BACKEND BOOT: $error';
       debugPrint('❌ BACKEND BOOT FAIL | $syncError');
-      _ensurePublicFallbackData();
     }
     notifyListeners();
   }
 
-  UserProfile get currentUser => user ?? seed.currentUser;
+  UserProfile get currentUser => user ?? _emptyUser;
 
   Challenge challengeById(String id) {
-    final source = challenges.isNotEmpty ? challenges : seed.challenges;
-    return source.firstWhere((c) => c.id == id, orElse: () => source.first);
+    final byId = challenges.where((c) => c.id == id).firstOrNull;
+    if (byId != null) return byId;
+    if (challenges.isNotEmpty) return challenges.first;
+    throw StateError('No challenges available.');
   }
 
   Challenge? get dailyChallenge =>
@@ -228,12 +245,15 @@ class AppState extends ChangeNotifier {
     completedChallengeIds = <String>{};
     achievementsInProgress = [];
     unlockedAchievements = [];
+    lastCompletionUnlockedAchievements = [];
+    lastCompletionChallengePoints = null;
+    lastCompletionTotalPointsAwarded = null;
     activeChallengeState = null;
     await prefs?.setBool('isAuthenticated', false);
     try {
       await _refreshPublicData();
-    } catch (_) {
-      _ensurePublicFallbackData();
+    } catch (error) {
+      syncError = 'signOut refresh failed: $error';
     }
     notifyListeners();
   }
@@ -499,6 +519,8 @@ class AppState extends ChangeNotifier {
     }
 
     final totalPointsAwarded = challenge.points + achievementBonusPoints;
+    lastCompletionChallengePoints = challenge.points;
+    lastCompletionTotalPointsAwarded = totalPointsAwarded;
     user = UserProfile(
       name: current.name,
       initials: current.initials,
@@ -535,10 +557,13 @@ class AppState extends ChangeNotifier {
           )
           .whereType<Achievement>()
           .toList();
+      lastCompletionUnlockedAchievements = newUnlocks;
       unlockedAchievements = [...newUnlocks, ...unlockedAchievements];
       achievementsInProgress = achievementsInProgress
           .where((a) => !unlockedTitles.contains(a.title))
           .toList();
+    } else {
+      lastCompletionUnlockedAchievements = const [];
     }
 
     leaderboard =
@@ -638,7 +663,6 @@ class AppState extends ChangeNotifier {
       avatarPath: user?.avatarPath,
     );
     _applyRemoteState(state);
-    _savePublicCache(state);
     await _saveUserCache();
   }
 
@@ -659,37 +683,6 @@ class AppState extends ChangeNotifier {
     final leaderboard = results[1];
     final data = {'challenges': challenges, 'leaderboard': leaderboard};
     _applyRemoteState(data);
-    _savePublicCache(data);
-  }
-
-  void _ensurePublicFallbackData() {
-    if (challenges.isEmpty) {
-      challenges = seed.challenges;
-      dailyChallengeId ??= seed.challenges.firstOrNull?.id;
-      nearbyChallengeIds = seed.challenges.take(3).map((c) => c.id).toList();
-    }
-    if (leaderboard.isEmpty) {
-      leaderboard = seed.leaderboard;
-    }
-  }
-
-  void _loadPublicCache() {
-    try {
-      final cj = prefs?.getString('cache_challenges');
-      final lj = prefs?.getString('cache_leaderboard');
-      if (cj != null) _applyRemoteState({'challenges': jsonDecode(cj)});
-      if (lj != null) _applyRemoteState({'leaderboard': jsonDecode(lj)});
-    } catch (_) {}
-  }
-
-  void _savePublicCache(Map<String, dynamic> data) {
-    if (prefs == null) return;
-    if (data['challenges'] is List) {
-      prefs!.setString('cache_challenges', jsonEncode(data['challenges']));
-    }
-    if (data['leaderboard'] is List) {
-      prefs!.setString('cache_leaderboard', jsonEncode(data['leaderboard']));
-    }
   }
 
   Future<bool> syncNow() async {

@@ -208,9 +208,11 @@ Widget _dynamicRoute(Uri uri, AppState app) {
   }
   if (segments.length == 2 && segments.first == 'challenge-complete') {
     final prevLevel = int.tryParse(uri.queryParameters['prevLevel'] ?? '');
+    final prevPoints = int.tryParse(uri.queryParameters['prevPoints'] ?? '');
     return ChallengeCompleteScreen(
       challenge: app.challengeById(segments.last),
       prevLevel: prevLevel,
+      prevPoints: prevPoints,
     );
   }
   if (segments.length == 2 && segments.first == 'level-up') {

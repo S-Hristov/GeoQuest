@@ -12,15 +12,29 @@ class ChallengeCompleteScreen extends StatelessWidget {
     super.key,
     required this.challenge,
     this.prevLevel,
+    this.prevPoints,
   });
   final Challenge challenge;
   final int? prevLevel;
+  final int? prevPoints;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final user = context.watch<AppState>().currentUser;
+    final app = context.watch<AppState>();
+    final user = app.currentUser;
     final didLevelUp = prevLevel != null && user.level > prevLevel!;
+    final totalEarned = prevPoints == null
+        ? challenge.points
+        : (user.points - prevPoints!).clamp(0, 1 << 30);
+    final unlockedNow = app.lastCompletionUnlockedAchievements;
+    final achievementBonusFromBadges = unlockedNow.fold<int>(
+      0,
+      (sum, a) => sum + a.rewardPoints,
+    );
+    final achievementBonus = (totalEarned - challenge.points) > 0
+        ? (totalEarned - challenge.points)
+        : achievementBonusFromBadges;
 
     return MobileFrame(
       backgroundColor: AppColors.magenta,
@@ -62,7 +76,7 @@ class ChallengeCompleteScreen extends StatelessWidget {
                         Text(l.yourRewards, style: AppTextStyles.h2),
                         const SizedBox(height: 10),
                         Text(
-                          '+${challenge.points}',
+                          '+$totalEarned',
                           style: const TextStyle(
                             color: AppColors.magenta,
                             fontSize: 36,
@@ -70,25 +84,75 @@ class ChallengeCompleteScreen extends StatelessWidget {
                           ),
                         ),
                         Text(l.pointsEarnedLabel, style: AppTextStyles.body),
-                        const SizedBox(height: 12),
-                        PrimaryCard(
-                          color: Theme.of(context).cardColor,
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(10),
-                          child: ListTile(
-                            dense: true,
-                            leading: const CircleAvatar(
-                              backgroundColor: AppColors.orange,
-                              child: Text('🏆'),
-                            ),
-                            title: Text(
-                              l.achievementFirstSteps,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            subtitle: Text(l.badgeUnlockedForCompletingChallenge),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              _BreakdownRow('Challenge', challenge.points),
+                              _BreakdownRow('Achievements', achievementBonus),
+                              const Divider(height: 16),
+                              _BreakdownRow('Total', totalEarned, emphasize: true),
+                            ],
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        if (unlockedNow.isNotEmpty) ...[
+                          for (final a in unlockedNow)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: PrimaryCard(
+                                color: Theme.of(context).cardColor,
+                                padding: const EdgeInsets.all(10),
+                                child: ListTile(
+                                  dense: true,
+                                  leading: const CircleAvatar(
+                                    backgroundColor: AppColors.orange,
+                                    child: Text('🏆'),
+                                  ),
+                                  title: Text(
+                                    a.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    l.badgeUnlockedForCompletingChallenge,
+                                  ),
+                                  trailing: Text(
+                                    '+${a.rewardPoints}',
+                                    style: const TextStyle(
+                                      color: AppColors.magenta,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ] else
+                          PrimaryCard(
+                            color: Theme.of(context).cardColor,
+                            padding: const EdgeInsets.all(10),
+                            child: ListTile(
+                              dense: true,
+                              leading: const CircleAvatar(
+                                backgroundColor: AppColors.orange,
+                                child: Text('🏆'),
+                              ),
+                              title: Text(
+                                l.achievementFirstSteps,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              subtitle: Text(l.badgeUnlockedForCompletingChallenge),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -160,6 +224,34 @@ class _WhiteStat extends StatelessWidget {
         label,
         textAlign: TextAlign.center,
         style: const TextStyle(color: Colors.white70),
+      ),
+    ],
+  );
+}
+
+class _BreakdownRow extends StatelessWidget {
+  const _BreakdownRow(this.label, this.points, {this.emphasize = false});
+
+  final String label;
+  final int points;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
+        ),
+      ),
+      const Spacer(),
+      Text(
+        '+$points',
+        style: TextStyle(
+          color: AppColors.magenta,
+          fontWeight: emphasize ? FontWeight.w800 : FontWeight.w700,
+        ),
       ),
     ],
   );

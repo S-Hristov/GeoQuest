@@ -69,35 +69,20 @@ class _CameraProofScreenState extends State<CameraProofScreen> {
           children: [
             Positioned.fill(
               child: ready
-                  ? CameraPreview(controller!)
+                  ? _CameraFillPreview(controller: controller!)
                   : Image.asset(widget.challenge.imageAsset, fit: BoxFit.cover),
             ),
             Positioned.fill(
               child: Container(color: Colors.black.withValues(alpha: .24)),
             ),
-            SafeArea(
-              child: IconButton.filled(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
-              ),
-            ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.photo_camera_outlined,
-                    color: Colors.white.withValues(alpha: .85),
-                    size: 70,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    error == null
-                        ? AppLocalizations.of(context).liveCameraPreview
-                        : AppLocalizations.of(context).cameraFallbackPreview,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
+            Positioned(
+              top: 0,
+              left: 0,
+              child: SafeArea(
+                child: IconButton.filled(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
               ),
             ),
             Positioned(
@@ -203,4 +188,26 @@ class _ConfirmPhoto extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _CameraFillPreview extends StatelessWidget {
+  const _CameraFillPreview({required this.controller});
+
+  final CameraController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = controller.value.previewSize;
+    if (size == null) return CameraPreview(controller);
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: size.height,
+          height: size.width,
+          child: CameraPreview(controller),
+        ),
+      ),
+    );
+  }
 }
