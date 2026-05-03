@@ -258,12 +258,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signInLocally() async {
-    isAuthenticated = true;
-    await prefs?.setBool('isAuthenticated', true);
-    notifyListeners();
-  }
-
   Future<void> completeOnboarding() async {
     onboardingSeen = true;
     await prefs?.setBool('onboardingSeen', true);
